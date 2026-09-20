@@ -17,6 +17,9 @@
     text-transform: uppercase; border: 1px solid #1a3040; padding: 4px 10px;
     background: rgba(4,8,16,0.85); z-index: 100; }
   a.back:hover { color: #4ab3d4; border-color: #4ab3d433; }
+  /* children must not shrink inside the fixed-height scrolling column */
+  .wf-main > * { flex-shrink: 0; }
+  .wf-pane > * { flex-shrink: 0; }
   .wf-pane::-webkit-scrollbar, .wf-main::-webkit-scrollbar { width: 6px; background: #04080f; }
   .wf-pane::-webkit-scrollbar-thumb, .wf-main::-webkit-scrollbar-thumb { background: #1a3040; border-radius: 3px; }
   @media (max-width: 1100px) {
