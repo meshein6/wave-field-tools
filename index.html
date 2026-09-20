@@ -3,112 +3,113 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Wave Field Tools</title>
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+<title>Tools — Wave Field Project</title>
+<meta name="description" content="Open-source calculators for LED array design: hex layout, power budgeting, and diffuser shadow optics."/>
+<link rel="stylesheet" href="wf.css"/>
 <style>
-  :root {
-    --bg: #07090b; --bg2: #0c1014; --border: #1e2d3a;
-    --amber: #f4a832; --amber2: #ffcb6b; --amber3: #7a4e10;
-    --teal: #2dd4a8; --text: #c8d8e8; --text2: #5a7a90;
-    --mono: 'Share Tech Mono', monospace; --cond: 'Barlow Condensed', sans-serif;
+  body { min-height: 100vh; display: flex; flex-direction: column; }
+  main { flex: 1; max-width: 940px; width: 100%; margin: 0 auto; padding: 72px 24px 80px; }
+  .hero { margin-bottom: 56px; }
+  .eyebrow {
+    font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent-glow); margin-bottom: 14px;
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: var(--cond);
-    min-height: 100vh; display: flex; flex-direction: column; align-items: center;
-    justify-content: center; padding: 40px 20px; }
-
-  header { text-align: center; margin-bottom: 56px; }
-  .wordmark { font-size: 13px; letter-spacing: .35em; color: var(--amber3);
-    font-family: var(--mono); text-transform: uppercase; margin-bottom: 12px; }
-  h1 { font-size: clamp(32px,6vw,56px); font-weight: 700; letter-spacing: .06em;
-    text-transform: uppercase; color: var(--amber); line-height: 1; margin-bottom: 10px; }
-  .sub { font-family: var(--mono); font-size: 11px; color: var(--text2);
-    letter-spacing: .2em; text-transform: uppercase; }
-
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px,1fr));
-    gap: 2px; max-width: 860px; width: 100%; }
-
-  .tool-card { background: var(--bg2); border: 1px solid var(--border);
-    padding: 32px 28px; text-decoration: none; color: inherit;
-    transition: border-color .2s, background .2s; position: relative; overflow: hidden; }
-  .tool-card::before { content: ''; position: absolute; top: 0; left: 0;
-    width: 3px; height: 100%; background: var(--amber3); transition: background .2s; }
-  .tool-card:hover { background: #0f1820; border-color: var(--border); }
-  .tool-card:hover::before { background: var(--amber); }
-
-  .card-tag { font-family: var(--mono); font-size: 8px; letter-spacing: .25em;
-    color: var(--amber3); text-transform: uppercase; margin-bottom: 16px;
-    display: flex; align-items: center; gap: 8px; }
-  .card-tag::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-  .card-title { font-size: 26px; font-weight: 700; letter-spacing: .05em;
-    text-transform: uppercase; color: var(--amber2); margin-bottom: 10px; }
-  .card-desc { font-family: var(--mono); font-size: 10px; color: var(--text2);
-    line-height: 1.7; letter-spacing: .04em; margin-bottom: 20px; }
-  .card-tags { display: flex; flex-wrap: wrap; gap: 5px; }
-  .tag { font-family: var(--mono); font-size: 8px; letter-spacing: .1em;
-    color: var(--teal); border: 1px solid #1a4030; padding: 3px 8px;
-    text-transform: uppercase; }
-  .card-arrow { position: absolute; bottom: 20px; right: 22px; font-family: var(--mono);
-    font-size: 18px; color: var(--amber3); transition: color .2s, transform .2s; }
-  .tool-card:hover .card-arrow { color: var(--amber); transform: translateX(4px); }
-
-  footer { margin-top: 48px; font-family: var(--mono); font-size: 9px;
-    color: var(--amber3); letter-spacing: .2em; text-align: center; }
-  footer a { color: var(--amber3); text-decoration: none; }
-  footer a:hover { color: var(--amber); }
+  h1 {
+    font-size: clamp(38px, 6vw, 60px); font-weight: 700; letter-spacing: -0.03em;
+    line-height: 1.05; margin-bottom: 18px;
+  }
+  h1 .grad {
+    background: linear-gradient(100deg, var(--led-cyan), var(--accent-glow) 55%, var(--led-pink));
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .lede { font-size: 17px; line-height: 1.65; color: var(--text-muted); max-width: 560px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px,1fr)); gap: 18px; }
+  .tool {
+    display: flex; flex-direction: column; padding: 28px 26px 24px;
+    text-decoration: none; color: inherit; position: relative;
+    transition: border-color .2s, transform .2s, box-shadow .2s;
+  }
+  .tool:hover {
+    border-color: var(--accent); transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(124,58,237,0.12);
+  }
+  .tool-num {
+    font-family: var(--mono); font-size: 11px; color: var(--text-muted);
+    margin-bottom: 16px; letter-spacing: 0.06em;
+  }
+  .tool h2 { font-size: 21px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 9px; }
+  .tool p { font-size: 14px; line-height: 1.65; color: var(--text-muted); margin-bottom: 20px; flex: 1; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    font-family: var(--mono); font-size: 10px; padding: 4px 9px; border-radius: 5px;
+    background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-muted);
+  }
+  .arrow {
+    position: absolute; top: 26px; right: 24px; font-size: 16px;
+    color: var(--text-muted); transition: color .2s, transform .2s;
+  }
+  .tool:hover .arrow { color: var(--accent-glow); transform: translateX(3px); }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="wordmark">Wave Field Project</div>
-  <h1>Tools</h1>
-  <div class="sub">Open-source calculators for LED array design</div>
-</header>
+<nav class="wf-nav">
+  <a class="wf-logo" href="https://www.wavefieldproject.com/">wavefield</a>
+  <div class="wf-nav-links">
+    <a class="nav-link" href="https://www.wavefieldproject.com/">Home</a>
+    <a class="nav-link" href="https://www.wavefieldproject.com/science">Science</a>
+    <a class="nav-link" href="https://www.wavefieldproject.com/guides">Guides</a>
+    <a class="nav-link active" href="./">Tools</a>
+    <a class="nav-link" href="https://www.wavefieldproject.com/buy">Build</a>
+  </div>
+</nav>
 
-<div class="grid">
+<main>
+  <div class="hero">
+    <div class="eyebrow">Open Source</div>
+    <h1>Design tools for <span class="grad">LED arrays</span></h1>
+    <p class="lede">
+      Calculators for laying out hex LED grids, budgeting power, and modelling how
+      diffuser geometry turns WLED effects into moving shadow patterns.
+    </p>
+  </div>
 
-  <a class="tool-card" href="hex-array/">
-    <div class="card-tag">Calculator 01</div>
-    <div class="card-title">LED Hex Array</div>
-    <div class="card-desc">
-      Interactive hex layout calculator.<br/>
-      LED count, strip routing, power budget,<br/>
-      PSU sizing and per-pixel current draw.
-    </div>
-    <div class="card-tags">
-      <span class="tag">WS2812B</span>
-      <span class="tag">SK6812</span>
-      <span class="tag">APA102</span>
-      <span class="tag">Power budget</span>
-      <span class="tag">SVG preview</span>
-    </div>
-    <span class="card-arrow">→</span>
-  </a>
+  <div class="grid">
+    <a class="wf-card tool" href="hex-array/">
+      <div class="tool-num">01</div>
+      <h2>Hex Array Calculator</h2>
+      <p>
+        Lay out an LED grid inside a hexagonal frame. Set flat-to-flat size, pitch and strip
+        width to get exact LED counts, strip routing, current draw and PSU sizing.
+      </p>
+      <div class="chips">
+        <span class="chip">WS2812B</span><span class="chip">SK6812</span>
+        <span class="chip">APA102</span><span class="chip">Power budget</span>
+      </div>
+      <span class="arrow">→</span>
+    </a>
 
-  <a class="tool-card" href="shadow-viz/">
-    <div class="card-tag">Calculator 02</div>
-    <div class="card-title">Shadow Visualizer</div>
-    <div class="card-desc">
-      Cross-section optics simulator for<br/>
-      LED → white diffuser → wall geometry.<br/>
-      Wobble effect + colour clarity analysis.
-    </div>
-    <div class="card-tags">
-      <span class="tag">WLED effects</span>
-      <span class="tag">Diffuser optics</span>
-      <span class="tag">Wobble score</span>
-      <span class="tag">Colour clarity</span>
-    </div>
-    <span class="card-arrow">→</span>
-  </a>
+    <a class="wf-card tool" href="shadow-viz/">
+      <div class="tool-num">02</div>
+      <h2>Shadow Visualizer</h2>
+      <p>
+        Cross-section optics for the LED → white diffuser → wall stack. Tune diffuser and wall
+        height to balance wobble motion against colour separation.
+      </p>
+      <div class="chips">
+        <span class="chip">Diffuser optics</span><span class="chip">Wobble</span>
+        <span class="chip">Colour clarity</span><span class="chip">Beam geometry</span>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+  </div>
+</main>
 
+<div class="wf-footer">
+  © 2026 Wave Field Project ·
+  <a href="https://www.wavefieldproject.com/">wavefieldproject.com</a> ·
+  <a href="https://github.com/meshein6/wave-field-tools">Source on GitHub</a>
 </div>
-
-<footer>
-  <a href="https://wavefieldproject.com">wavefieldproject.com</a>
-  &nbsp;·&nbsp; open source &nbsp;·&nbsp; MIT license
-</footer>
 
 </body>
 </html>

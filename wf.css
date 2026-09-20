@@ -1,0 +1,140 @@
+/* ══ Wave Field Tools — shared theme (matches wavefieldproject.com) ══ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg-primary:   #0a0a0c;
+  --bg-secondary: #111114;
+  --bg-card:      #16161a;
+  --border:       #2a2a32;
+  --text-primary: #f0f0f5;
+  --text-muted:   #7a7a8c;
+  --accent:       #7c3aed;
+  --accent-glow:  #a855f7;
+  --led-cyan:     #06b6d4;
+  --led-amber:    #f59e0b;
+  --led-pink:     #ec4899;
+  --good:         #10b981;
+  --warn:         #f59e0b;
+  --bad:          #ef4444;
+  --sans: Inter, system-ui, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Nav ── */
+.wf-nav {
+  height: 65px; display: flex; align-items: center; gap: 28px;
+  padding: 0 24px; background: rgba(10,10,12,0.88);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 50; flex-shrink: 0;
+}
+.wf-logo {
+  font-size: 18px; font-weight: 800; letter-spacing: -0.03em;
+  color: var(--text-primary); text-decoration: none;
+}
+.wf-nav-links { display: flex; gap: 22px; align-items: center; }
+.wf-nav a.nav-link {
+  font-size: 14px; font-weight: 500; color: var(--text-muted);
+  text-decoration: none; transition: color .15s;
+}
+.wf-nav a.nav-link:hover, .wf-nav a.nav-link.active { color: var(--text-primary); font-weight: 600; }
+.wf-nav .spacer { flex: 1; }
+.wf-tool-name {
+  font-size: 13px; font-weight: 600; color: var(--text-muted);
+  padding-left: 20px; border-left: 1px solid var(--border);
+}
+
+/* ── Cards / panels ── */
+.wf-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden;
+}
+.wf-section-label {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--text-muted); margin-bottom: 14px;
+}
+
+/* ── Controls ── */
+.wf-field { margin-bottom: 16px; }
+.wf-field:last-child { margin-bottom: 0; }
+.wf-field label {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 7px;
+}
+.wf-field label .unit, .wf-val {
+  font-family: var(--mono); font-size: 12px; color: var(--accent-glow); font-weight: 500;
+}
+input[type=range] {
+  width: 100%; height: 3px; -webkit-appearance: none; appearance: none;
+  background: var(--border); outline: none; border-radius: 2px; cursor: pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none; width: 14px; height: 14px;
+  border-radius: 50%; background: var(--accent-glow); cursor: pointer;
+  box-shadow: 0 0 0 3px rgba(168,85,247,0.18); transition: box-shadow .15s;
+}
+input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 0 5px rgba(168,85,247,0.28); }
+input[type=range]::-moz-range-thumb {
+  width: 14px; height: 14px; border: none; border-radius: 50%;
+  background: var(--accent-glow); cursor: pointer;
+}
+input[type=number], input[type=text], select {
+  width: 100%; background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: 7px; color: var(--text-primary); font-family: var(--mono);
+  font-size: 13px; padding: 7px 10px; outline: none; transition: border-color .15s;
+  -moz-appearance: textfield;
+}
+input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+input:focus, select:focus { border-color: var(--accent); }
+select { cursor: pointer; }
+
+/* ── Buttons ── */
+.wf-btn {
+  font-family: var(--sans); font-size: 12px; font-weight: 600;
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  color: var(--text-muted); border-radius: 7px; padding: 7px 14px;
+  cursor: pointer; transition: all .15s;
+}
+.wf-btn:hover { border-color: var(--accent); color: var(--text-primary); }
+.wf-btn.active {
+  background: rgba(124,58,237,0.15); border-color: var(--accent);
+  color: var(--accent-glow);
+}
+.wf-btn.primary {
+  background: var(--accent); border-color: var(--accent); color: #fff;
+}
+.wf-btn.primary:hover { background: var(--accent-glow); border-color: var(--accent-glow); }
+
+/* ── Stat tiles ── */
+.wf-stat {
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: 9px; padding: 11px 13px;
+}
+.wf-stat-label {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--text-muted); margin-bottom: 5px;
+}
+.wf-stat-value { font-family: var(--mono); font-size: 19px; font-weight: 500; line-height: 1; }
+.wf-stat-unit { font-size: 11px; margin-left: 3px; opacity: 0.65; }
+
+/* ── Scrollbars ── */
+::-webkit-scrollbar { width: 8px; height: 8px; background: var(--bg-primary); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #3a3a44; }
+
+/* ── Footer ── */
+.wf-footer {
+  font-size: 12px; color: var(--text-muted); text-align: center;
+  padding: 28px 20px; border-top: 1px solid var(--border);
+}
+.wf-footer a { color: var(--text-muted); text-decoration: none; }
+.wf-footer a:hover { color: var(--accent-glow); }

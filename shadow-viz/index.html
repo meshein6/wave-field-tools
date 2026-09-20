@@ -1,40 +1,35 @@
-<!DOCTYPE html>
-<html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>LED Shadow Visualizer — Wave Field Tools</title>
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+<title>Shadow Visualizer — Wave Field Tools</title>
+<link rel="stylesheet" href="../wf.css"/>
 <style>
-  * { box-sizing: border-box; }
-  body { margin: 0; background: #040810; font-family: 'Courier New', monospace; }
-  input[type=range] { accent-color: #4ab3d4; }
-  details summary { outline: none; }
-  ::-webkit-scrollbar { width: 5px; background: #04080f; }
-  ::-webkit-scrollbar-thumb { background: #1a3040; }
-  a.back { position: fixed; top: 12px; left: 16px; font-family: 'Share Tech Mono', monospace;
-    font-size: 10px; color: #2a6080; text-decoration: none; letter-spacing: .15em;
-    text-transform: uppercase; border: 1px solid #1a3040; padding: 4px 10px;
-    background: rgba(4,8,16,0.85); z-index: 100; }
-  a.back:hover { color: #4ab3d4; border-color: #4ab3d433; }
-  /* children must not shrink inside the fixed-height scrolling column */
-  .wf-main > * { flex-shrink: 0; }
-  .wf-pane > * { flex-shrink: 0; }
-  .wf-pane::-webkit-scrollbar, .wf-main::-webkit-scrollbar { width: 6px; background: #04080f; }
-  .wf-pane::-webkit-scrollbar-thumb, .wf-main::-webkit-scrollbar-thumb { background: #1a3040; border-radius: 3px; }
-  @media (max-width: 1100px) {
-    .wf-tiles { grid-template-columns: 1fr !important; }
-  }
-  @media (max-width: 860px) {
-    body > div > div[style*="row"] { flex-direction: column !important; }
+  body { height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+  #root { flex: 1; min-height: 0; }
+  .wf-main > *, .wf-pane > * { flex-shrink: 0; }
+  details summary { outline: none; cursor: pointer; list-style: none; }
+  details summary::-webkit-details-marker { display: none; }
+  @media (max-width: 1100px) { .wf-tiles { grid-template-columns: 1fr !important; } }
+  @media (max-width: 880px) {
+    body { height: auto; overflow: auto; }
+    .wf-split { flex-direction: column !important; }
     .wf-main { height: auto !important; overflow: visible !important; }
     .wf-pane { flex: 0 0 auto !important; width: 100% !important; height: auto !important;
-               border-left: none !important; border-top: 1px solid #152030; }
+               border-left: none !important; border-top: 1px solid var(--border) !important; }
   }
 </style>
 </head>
 <body>
-<a class="back" href="../">← Tools</a>
+
+<nav class="wf-nav">
+  <a class="wf-logo" href="https://www.wavefieldproject.com/">wavefield</a>
+  <div class="wf-nav-links">
+    <a class="nav-link" href="../">Tools</a>
+  </div>
+  <div class="spacer"></div>
+  <span class="wf-tool-name">Shadow Visualizer</span>
+</nav>
+
 <div id="root"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -107,8 +102,8 @@ function suggestOptimal(p) {
 }
 
 // ── Colour helpers ─────────────────────────────────────────────────────────
-const C = { good:"#3ddc97", warn:"#f5a623", bad:"#e05050", info:"#4ab3d4" };
-const BG= { good:"rgba(61,220,151,0.08)", warn:"rgba(245,166,35,0.08)", bad:"rgba(224,80,80,0.08)", info:"rgba(74,179,212,0.08)" };
+const C = { good:"#10b981", warn:"#f59e0b", bad:"#ef4444", info:"#a855f7" };
+const BG= { good:"rgba(16,185,129,0.08)", warn:"rgba(245,158,11,0.08)", bad:"rgba(239,68,68,0.08)", info:"rgba(124,58,237,0.08)" };
 
 function rStat(r)  { return r<0.08?"bad":r<0.2?"warn":r<=0.85?"good":r<=1.4?"warn":"bad"; }
 function dStat(d)  { return d<0.10?"bad":d<0.15?"warn":d<=0.45?"good":d<=0.55?"warn":"bad"; }
@@ -117,24 +112,24 @@ function clStat(c) { return c>0.80?"good":c>0.50?"warn":"bad"; }
 
 // ── Sub-components ─────────────────────────────────────────────────────────
 function Label({ children }) {
-  return <div style={{ fontSize:9, color:"#2a5870", letterSpacing:"0.22em", textTransform:"uppercase", marginBottom:8 }}>{children}</div>;
+  return <div style={{ fontSize:9, color:"#7a7a8c", letterSpacing:"0.22em", textTransform:"uppercase", marginBottom:8 }}>{children}</div>;
 }
 
 function NumField({ label, value, min, max, step, onChange, unit="" }) {
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
-      <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"#7ec8e3", textTransform:"uppercase", letterSpacing:"0.06em" }}>
+      <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"#c4b5fd", textTransform:"uppercase", letterSpacing:"0.06em" }}>
         <span>{label}</span>
         <span style={{ color:"#c8e8f8", fontVariantNumeric:"tabular-nums" }}>{value}{unit}</span>
       </div>
       <input type="range" min={min} max={max} step={step} value={value}
         onChange={e=>onChange(Number(e.target.value))}
-        style={{ accentColor:"#4ab3d4", cursor:"pointer" }} />
+        style={{ accentColor:"#a855f7", cursor:"pointer" }} />
       <input type="number" min={min} max={max} step={step} value={value}
         onChange={e=>{const v=Number(e.target.value); if(!isNaN(v)&&v>=min&&v<=max) onChange(v);}}
-        style={{ background:"rgba(8,18,36,0.8)", border:"1px solid #1e3a50", borderRadius:3,
-          color:"#9dd8f0", fontSize:11, padding:"3px 6px", width:"100%", boxSizing:"border-box",
-          fontFamily:"'Courier New',monospace" }} />
+        style={{ background:"rgba(8,18,36,0.8)", border:"1px solid #2a2a32", borderRadius:3,
+          color:"#c4b5fd", fontSize:11, padding:"3px 6px", width:"100%", boxSizing:"border-box",
+          fontFamily:"Inter, system-ui, sans-serif" }} />
     </div>
   );
 }
@@ -142,13 +137,13 @@ function NumField({ label, value, min, max, step, onChange, unit="" }) {
 function HeightSlider({ label, value, min, max, step, onChange, unit="" }) {
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:5, flex:1 }}>
-      <div style={{ display:"flex", justifyContent:"space-between", fontSize:11, color:"#7ec8e3", textTransform:"uppercase", letterSpacing:"0.07em" }}>
+      <div style={{ display:"flex", justifyContent:"space-between", fontSize:11, color:"#c4b5fd", textTransform:"uppercase", letterSpacing:"0.07em" }}>
         <span>{label}</span>
-        <span style={{ color:"#dff0fb", fontVariantNumeric:"tabular-nums", fontSize:13, fontWeight:700 }}>{value}{unit}</span>
+        <span style={{ color:"#f0f0f5", fontVariantNumeric:"tabular-nums", fontSize:13, fontWeight:700 }}>{value}{unit}</span>
       </div>
       <input type="range" min={min} max={max} step={step} value={value}
         onChange={e=>onChange(Number(e.target.value))}
-        style={{ accentColor:"#4ab3d4", cursor:"pointer" }} />
+        style={{ accentColor:"#a855f7", cursor:"pointer" }} />
     </div>
   );
 }
@@ -156,7 +151,7 @@ function HeightSlider({ label, value, min, max, step, onChange, unit="" }) {
 function Metric({ label, value, unit, status }) {
   return (
     <div style={{ background:BG[status], border:`1px solid ${C[status]}44`, borderRadius:5, padding:"7px 9px" }}>
-      <div style={{ fontSize:8, color:"#3a6878", letterSpacing:"0.1em", textTransform:"uppercase", marginBottom:2 }}>{label}</div>
+      <div style={{ fontSize:8, color:"#7a7a8c", letterSpacing:"0.1em", textTransform:"uppercase", marginBottom:2 }}>{label}</div>
       <div style={{ fontSize:14, fontWeight:700, color:C[status], fontVariantNumeric:"tabular-nums", lineHeight:1 }}>
         {value}<span style={{ fontSize:9, marginLeft:2, opacity:0.7 }}>{unit}</span>
       </div>
@@ -168,11 +163,11 @@ function BarGauge({ value, max=1, status, label }) {
   const pct = Math.min(1, Math.max(0, value / max)) * 100;
   return (
     <div style={{ marginBottom:6 }}>
-      <div style={{ display:"flex", justifyContent:"space-between", fontSize:9, color:"#3a6878", marginBottom:3 }}>
+      <div style={{ display:"flex", justifyContent:"space-between", fontSize:9, color:"#7a7a8c", marginBottom:3 }}>
         <span style={{ textTransform:"uppercase", letterSpacing:"0.08em" }}>{label}</span>
         <span style={{ color:C[status], fontWeight:700 }}>{(value*100).toFixed(0)}%</span>
       </div>
-      <div style={{ background:"rgba(10,22,42,0.8)", borderRadius:3, height:6, overflow:"hidden", border:"1px solid #1a3040" }}>
+      <div style={{ background:"rgba(10,22,42,0.8)", borderRadius:3, height:6, overflow:"hidden", border:"1px solid #2a2a32" }}>
         <div style={{ width:`${pct}%`, height:"100%", background:C[status], borderRadius:3, transition:"width 0.2s" }} />
       </div>
     </div>
@@ -199,7 +194,7 @@ function ScoreDial({ score, status, label, sublabel }) {
       <svg width="100" height="70" viewBox="0 0 100 70">
         {/* background track */}
         <path d={`M ${x1} ${y1} A ${r} ${r} 0 1 1 ${x2} ${y2}`}
-          fill="none" stroke="#1a3040" strokeWidth={7} strokeLinecap="round"/>
+          fill="none" stroke="#2a2a32" strokeWidth={7} strokeLinecap="round"/>
         {/* filled arc */}
         {pct > 0.001 && (
           <path d={`M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${ex} ${ey}`}
@@ -208,14 +203,14 @@ function ScoreDial({ score, status, label, sublabel }) {
         {/* needle dot */}
         <circle cx={nx} cy={ny} r={4} fill={C[status]}/>
         <text x={cx} y={cy-1} textAnchor="middle" fill={C[status]}
-          fontSize="13" fontWeight="700" fontFamily="'Courier New',monospace">
+          fontSize="13" fontWeight="700" fontFamily="'JetBrains Mono',ui-monospace,monospace">
           {(pct*100).toFixed(0)}
         </text>
-        <text x={cx} y={cy+10} textAnchor="middle" fill="#3a6878"
-          fontSize="7" fontFamily="'Courier New',monospace">%</text>
+        <text x={cx} y={cy+10} textAnchor="middle" fill="#7a7a8c"
+          fontSize="7" fontFamily="'JetBrains Mono',ui-monospace,monospace">%</text>
       </svg>
-      <div style={{ fontSize:9, color:"#4a8a9a", textTransform:"uppercase", letterSpacing:"0.1em", textAlign:"center" }}>{label}</div>
-      {sublabel && <div style={{ fontSize:8, color:"#2a5060", textAlign:"center" }}>{sublabel}</div>}
+      <div style={{ fontSize:9, color:"#7a7a8c", textTransform:"uppercase", letterSpacing:"0.1em", textAlign:"center" }}>{label}</div>
+      {sublabel && <div style={{ fontSize:8, color:"#7a7a8c", textAlign:"center" }}>{sublabel}</div>}
     </div>
   );
 }
@@ -223,11 +218,11 @@ function ScoreDial({ score, status, label, sublabel }) {
 // Wobble zone strip — the shift ratio IS the visualisation, no separate score
 // Zones: 0────0.08────0.25────0.85────1.4────2.0+
 const ZONES = [
-  { lo:0,    hi:0.08, label:"None",    color:"#e05050" },
-  { lo:0.08, hi:0.25, label:"Shimmer", color:"#f5a623" },
-  { lo:0.25, hi:0.85, label:"Optimal", color:"#3ddc97" },
-  { lo:0.85, hi:1.40, label:"Busy",    color:"#f5a623" },
-  { lo:1.40, hi:2.00, label:"Chaotic", color:"#e05050" },
+  { lo:0,    hi:0.08, label:"None",    color:"#ef4444" },
+  { lo:0.08, hi:0.25, label:"Shimmer", color:"#f59e0b" },
+  { lo:0.25, hi:0.85, label:"Optimal", color:"#10b981" },
+  { lo:0.85, hi:1.40, label:"Busy",    color:"#f59e0b" },
+  { lo:1.40, hi:2.00, label:"Chaotic", color:"#ef4444" },
 ];
 const STRIP_MAX = 2.0;
 
@@ -272,7 +267,7 @@ function RatioZoneStrip({ ratio }) {
     <div style={{ width:"100%", marginBottom:12 }}>
       {/* Zone header */}
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:6 }}>
-        <span style={{ fontSize:9, color:"#3a6878", textTransform:"uppercase", letterSpacing:"0.1em" }}>Shift Ratio Position</span>
+        <span style={{ fontSize:9, color:"#7a7a8c", textTransform:"uppercase", letterSpacing:"0.1em" }}>Shift Ratio Position</span>
         <span style={{ fontSize:14, fontWeight:700, color:activeZone.color, fontVariantNumeric:"tabular-nums" }}>
           {isFinite(ratio) ? ratio.toFixed(2) : "∞"}
           <span style={{ fontSize:10, marginLeft:4, opacity:0.8 }}>— {activeZone.label}</span>
@@ -280,11 +275,11 @@ function RatioZoneStrip({ ratio }) {
       </div>
 
       {/* Segmented colour bar */}
-      <div style={{ position:"relative", height:18, borderRadius:4, overflow:"hidden", display:"flex", border:"1px solid #1a3040" }}>
+      <div style={{ position:"relative", height:18, borderRadius:4, overflow:"hidden", display:"flex", border:"1px solid #2a2a32" }}>
         {ZONES.map(z => {
           const w = ((z.hi - z.lo) / STRIP_MAX) * 100;
           return (
-            <div key={z.label} style={{ width:`${w}%`, background:z.color+"28", borderRight:"1px solid #1a3040",
+            <div key={z.label} style={{ width:`${w}%`, background:z.color+"28", borderRight:"1px solid #2a2a32",
               display:"flex", alignItems:"center", justifyContent:"center" }}>
               <span style={{ fontSize:7, color:z.color+"cc", letterSpacing:"0.06em", textTransform:"uppercase", userSelect:"none" }}>{z.label}</span>
             </div>
@@ -305,14 +300,14 @@ function RatioZoneStrip({ ratio }) {
         {[0, 0.08, 0.25, 0.85, 1.4, 2.0].map(v => (
           <span key={v} style={{
             position:"absolute", left:`${(v/STRIP_MAX)*100}%`,
-            transform:"translateX(-50%)", fontSize:7, color:"#2a5060",
+            transform:"translateX(-50%)", fontSize:7, color:"#7a7a8c",
             fontVariantNumeric:"tabular-nums",
           }}>{v}</span>
         ))}
       </div>
 
       {/* Visual description — updates live with position in band */}
-      <div style={{ background:"rgba(4,10,22,0.65)", border:`1px solid ${activeZone.color}22`,
+      <div style={{ background:"#111114", border:`1px solid ${activeZone.color}22`,
         borderLeft:`2px solid ${activeZone.color}88`,
         borderRadius:4, padding:"9px 11px", fontSize:9.5, lineHeight:1.7, color:"#7ab8cc" }}>
 
@@ -322,7 +317,7 @@ function RatioZoneStrip({ ratio }) {
             letterSpacing:"0.1em", display:"block", marginBottom:3 }}>
             {activeZone.lo === 0 ? "At this ratio:" : `Near ${activeZone.lo} (entering ${activeZone.label.toLowerCase()}):`}
           </span>
-          <span style={{ color: isLow ? "#c8e8f5" : "#4a7a8a" }}>{descs[0]}</span>
+          <span style={{ color: isLow ? "#f0f0f5" : "#7a7a8c" }}>{descs[0]}</span>
         </div>
 
         {/* Top-of-band description — shown when not at bottom */}
@@ -332,7 +327,7 @@ function RatioZoneStrip({ ratio }) {
               letterSpacing:"0.1em", display:"block", marginBottom:3, marginTop: isMid||isHigh ? 0 : 7 }}>
               Near {activeZone.hi} (approaching {(ZONES.find(z=>z.lo===activeZone.hi)||{label:"limit"}).label.toLowerCase()}):
             </span>
-            <span style={{ color: isHigh ? "#c8e8f5" : "#4a7a8a" }}>{descs[1]}</span>
+            <span style={{ color: isHigh ? "#f0f0f5" : "#7a7a8c" }}>{descs[1]}</span>
           </div>
         )}
         {activeZone.hi > STRIP_MAX && (
@@ -341,7 +336,7 @@ function RatioZoneStrip({ ratio }) {
               letterSpacing:"0.1em", display:"block", marginBottom:3 }}>
               Above {activeZone.lo}:
             </span>
-            <span style={{ color: isHigh ? "#c8e8f5" : "#4a7a8a" }}>{descs[1]}</span>
+            <span style={{ color: isHigh ? "#f0f0f5" : "#7a7a8c" }}>{descs[1]}</span>
           </div>
         )}
       </div>
@@ -404,8 +399,8 @@ function App() {
     const diffH    = 24;
 
     if (lensY < 28) {
-      ctx.fillStyle="#060912"; ctx.fillRect(0,0,W,H);
-      ctx.fillStyle="#e05050"; ctx.font="11px monospace";
+      ctx.fillStyle="#0a0a0c"; ctx.fillRect(0,0,W,H);
+      ctx.fillStyle="#ef4444"; ctx.font="11px monospace";
       ctx.fillText("Lens height too large for viewport — reduce it", 20, H/2);
       return;
     }
@@ -421,8 +416,8 @@ function App() {
       0.6+0.45*(Math.sin(t+i*0.73)*0.5+Math.sin(t*1.31+i*1.2)*0.3+Math.sin(t*0.61+i*0.41)*0.2)
     ));
 
-    ctx.fillStyle="#060912"; ctx.fillRect(0,0,W,H);
-    ctx.strokeStyle="rgba(20,40,70,0.25)"; ctx.lineWidth=0.5;
+    ctx.fillStyle="#0a0a0c"; ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle="rgba(42,42,50,0.35)"; ctx.lineWidth=0.5;
     for(let x=0;x<W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
     for(let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
 
@@ -491,10 +486,10 @@ function App() {
     }
 
     const pg=ctx.createLinearGradient(0,ledY+5,0,H);
-    pg.addColorStop(0,"#0c1422");pg.addColorStop(1,"#070c16");
+    pg.addColorStop(0,"#111114");pg.addColorStop(1,"#0a0a0c");
     ctx.fillStyle=pg;ctx.fillRect(0,ledY+5,W,H-ledY-5);
-    ctx.fillStyle="#182436";ctx.fillRect(0,ledY+5,W,3);
-    ctx.fillStyle="#233245";ctx.fillRect(0,ledY+7,W,1);
+    ctx.fillStyle="#2a2a32";ctx.fillRect(0,ledY+5,W,3);
+    ctx.fillStyle="#2a2a32";ctx.fillRect(0,ledY+7,W,1);
 
     leds.forEach((lx,li)=>{
       if(lx<-30||lx>W+30) return;
@@ -502,7 +497,7 @@ function App() {
       const halo=ctx.createRadialGradient(lx,ledY,0,lx,ledY,28);
       halo.addColorStop(0,`rgba(255,200,75,${b*0.5})`);halo.addColorStop(0.35,`rgba(255,140,35,${b*0.12})`);halo.addColorStop(1,"rgba(255,80,0,0)");
       ctx.fillStyle=halo;ctx.fillRect(lx-28,ledY-28,56,56);
-      ctx.fillStyle="#1a2030";ctx.fillRect(lx-5,ledY-4,10,8);
+      ctx.fillStyle="#16161a";ctx.fillRect(lx-5,ledY-4,10,8);
       const die=ctx.createRadialGradient(lx,ledY,0,lx,ledY,4.5);
       die.addColorStop(0,`rgba(255,255,240,${b})`);die.addColorStop(0.5,`rgba(255,230,130,${b*0.9})`);die.addColorStop(1,`rgba(255,155,35,${b*0.5})`);
       ctx.fillStyle=die;ctx.fillRect(lx-3.5,ledY-2.5,7,5);
@@ -512,38 +507,38 @@ function App() {
       if(wx<-6||wx>W+6) return;
       const hw=wallTPx/2;
       const wg=ctx.createLinearGradient(wx-hw,0,wx+hw,0);
-      wg.addColorStop(0,"rgba(38,75,130,0.95)");wg.addColorStop(0.5,"rgba(65,125,200,0.97)");wg.addColorStop(1,"rgba(38,75,130,0.95)");
+      wg.addColorStop(0,"rgba(91,33,182,0.95)");wg.addColorStop(0.5,"rgba(124,58,237,0.97)");wg.addColorStop(1,"rgba(91,33,182,0.95)");
       ctx.fillStyle=wg;ctx.fillRect(wx-hw,lensY,wallTPx,wallHPx);
-      ctx.strokeStyle="rgba(110,185,255,0.28)";ctx.lineWidth=0.5;ctx.strokeRect(wx-hw,lensY,wallTPx,wallHPx);
+      ctx.strokeStyle="rgba(168,85,247,0.28)";ctx.lineWidth=0.5;ctx.strokeRect(wx-hw,lensY,wallTPx,wallHPx);
       const sg=ctx.createLinearGradient(wx,wallBotY,wx,wallBotY+12);
       sg.addColorStop(0,"rgba(0,0,0,0.26)");sg.addColorStop(1,"rgba(0,0,0,0)");
       ctx.fillStyle=sg;ctx.fillRect(wx-wallTPx*2,wallBotY,wallTPx*4,12);
     });
 
     const lg=ctx.createLinearGradient(0,lensY-3,0,lensY+5);
-    lg.addColorStop(0,"rgba(155,215,255,0.12)");lg.addColorStop(0.5,"rgba(195,238,255,0.48)");lg.addColorStop(1,"rgba(95,175,235,0.06)");
+    lg.addColorStop(0,"rgba(6,182,212,0.12)");lg.addColorStop(0.5,"rgba(103,232,249,0.48)");lg.addColorStop(1,"rgba(6,182,212,0.06)");
     ctx.fillStyle=lg;ctx.fillRect(0,lensY-3,W,8);
-    ctx.strokeStyle="rgba(125,205,255,0.86)";ctx.lineWidth=1.5;ctx.setLineDash([]);
+    ctx.strokeStyle="rgba(6,182,212,0.86)";ctx.lineWidth=1.5;ctx.setLineDash([]);
     ctx.beginPath();ctx.moveTo(0,lensY);ctx.lineTo(W,lensY);ctx.stroke();
-    ctx.strokeStyle="rgba(90,175,215,0.18)";ctx.lineWidth=1;
+    ctx.strokeStyle="rgba(6,182,212,0.18)";ctx.lineWidth=1;
     for(let x=0;x<W;x+=16){ctx.beginPath();ctx.moveTo(x,lensY-2.5);ctx.lineTo(x,lensY+2.5);ctx.stroke();}
 
     const ax=W-20;
-    ctx.strokeStyle="rgba(100,160,200,0.36)";ctx.lineWidth=1;ctx.setLineDash([3,4]);
+    ctx.strokeStyle="rgba(122,122,140,0.36)";ctx.lineWidth=1;ctx.setLineDash([3,4]);
     ctx.beginPath();ctx.moveTo(ax,ledY-2);ctx.lineTo(ax,lensY+2);ctx.stroke();
-    ctx.setLineDash([]);ctx.fillStyle="rgba(115,185,225,0.8)";ctx.font="bold 9px 'Courier New',monospace";ctx.textAlign="right";
+    ctx.setLineDash([]);ctx.fillStyle="rgba(6,182,212,0.8)";ctx.font="bold 9px 'JetBrains Mono',ui-monospace,monospace";ctx.textAlign="right";
     ctx.fillText(`${p.lensHeight}mm (H)`,ax-3,(ledY+lensY)/2+3);
-    dblArrow(ctx,ax,ledY-2,ax,lensY+2,"rgba(115,185,225,0.62)");
+    dblArrow(ctx,ax,ledY-2,ax,lensY+2,"rgba(6,182,212,0.62)");
     if(wallHPx>12){
-      ctx.strokeStyle="rgba(75,135,195,0.36)";ctx.lineWidth=1;ctx.setLineDash([3,4]);
+      ctx.strokeStyle="rgba(124,58,237,0.36)";ctx.lineWidth=1;ctx.setLineDash([3,4]);
       ctx.beginPath();ctx.moveTo(18,lensY);ctx.lineTo(18,wallBotY);ctx.stroke();
-      ctx.setLineDash([]);ctx.fillStyle="rgba(95,165,215,0.70)";ctx.textAlign="left";
+      ctx.setLineDash([]);ctx.fillStyle="rgba(168,85,247,0.70)";ctx.textAlign="left";
       ctx.fillText(`${p.wallHeight}mm`,22,(lensY+wallBotY)/2+3);
     }
-    ctx.textAlign="left";ctx.font="9px 'Courier New',monospace";
-    ctx.fillStyle="rgba(125,205,255,0.58)";ctx.fillText("◀ WHITE DIFFUSER ▶",W/2-68,lensY-9);
+    ctx.textAlign="left";ctx.font="9px 'JetBrains Mono',ui-monospace,monospace";
+    ctx.fillStyle="rgba(6,182,212,0.58)";ctx.fillText("◀ WHITE DIFFUSER ▶",W/2-68,lensY-9);
     ctx.fillStyle="rgba(255,200,95,0.48)";ctx.fillText("LED ARRAY",10,ledY-10);
-    ctx.fillStyle="rgba(75,140,215,0.58)";ctx.fillText("WALLS",10,lensY+14);
+    ctx.fillStyle="rgba(168,85,247,0.58)";ctx.fillText("WALLS",10,lensY+14);
     ctx.fillStyle="rgba(255,238,165,0.40)";ctx.fillText("▲ DIFFUSED OUTPUT",W/2-60,lensY-diffH-5);
     ctx.textAlign="left";
   }, [p]);
@@ -555,7 +550,7 @@ function App() {
     return()=>{stop=true;cancelAnimationFrame(rafRef.current);};
   },[draw]);
   // ── Shared styles ────────────────────────────────────────────────────────
-  const panel = { background:"rgba(8,18,35,0.92)", border:"1px solid #152030", borderRadius:8, padding:"16px 20px", boxSizing:"border-box" };
+  const panel = { background:"#16161a", border:"1px solid #2a2a32", borderRadius:12, padding:"18px 20px", boxSizing:"border-box" };
 
   const rSt = rStat(ratio), dSt = dStat(depth), fSt = fStat(fill), bSt = beamOk?"good":"bad";
   const clSt = clStat(cc.clarity);
@@ -564,22 +559,22 @@ function App() {
   const clarityVerdict = cc.clarity>0.85?"Colors sharp & distinct":cc.clarity>0.65?"Minor neighbour mixing":cc.clarity>0.45?"Noticeable colour bleed":"Heavy colour mixing";
 
   return (
-    <div style={{ background:"linear-gradient(155deg,#040810 0%,#060c18 60%,#040a14 100%)", minHeight:"100vh", display:"flex", flexDirection:"row", alignItems:"stretch", fontFamily:"'Courier New',monospace" }}>
+    <div style={{ background:"var(--bg-primary)", minHeight:"100vh", display:"flex", flexDirection:"row", alignItems:"stretch", fontFamily:"Inter, system-ui, sans-serif" }}>
 
       {/* ══ LEFT: canvas + analytics (scrolls) ══ */}
       <div className="wf-main" style={{ flex:"1 1 0", minWidth:0, overflowY:"auto", height:"100vh", display:"flex", flexDirection:"column", alignItems:"center", padding:"20px 16px 40px", gap:14 }}>
 
       {/* Header */}
       <div style={{ textAlign:"center" }}>
-        <div style={{ fontSize:9, letterSpacing:"0.35em", color:"#1e4e62", textTransform:"uppercase" }}>Optical Cross-Section Simulator</div>
-        <h1 style={{ fontSize:18, fontWeight:700, margin:"3px 0 2px", letterSpacing:"0.09em", background:"linear-gradient(90deg,#4ab3d4,#a8e4fa,#4ab3d4)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", textTransform:"uppercase" }}>
+        <div style={{ fontSize:9, letterSpacing:"0.35em", color:"#7a7a8c", textTransform:"uppercase" }}>Optical Cross-Section Simulator</div>
+        <h1 style={{ fontSize:18, fontWeight:700, margin:"3px 0 2px", letterSpacing:"0.09em", background:"linear-gradient(90deg,#a855f7,#e9d5ff,#a855f7)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", textTransform:"uppercase" }}>
           LED Grid Shadow Visualizer
         </h1>
-        <div style={{ fontSize:9, color:"#1c4055", letterSpacing:"0.18em" }}>WLED DIFFUSER · WALL SHADOWS · WOBBLE & COLOUR CLARITY</div>
+        <div style={{ fontSize:9, color:"#7a7a8c", letterSpacing:"0.18em" }}>WLED DIFFUSER · WALL SHADOWS · WOBBLE & COLOUR CLARITY</div>
       </div>
 
       {/* Canvas */}
-      <div style={{ border:"1px solid #182840", borderRadius:6, overflow:"hidden", maxWidth:"100%", boxShadow:"0 0 38px rgba(74,179,212,0.06),0 6px 55px rgba(0,0,0,0.75)" }}>
+      <div style={{ border:"1px solid #182840", borderRadius:6, overflow:"hidden", maxWidth:"100%", boxShadow:"0 0 38px rgba(124,58,237,0.06),0 6px 55px rgba(0,0,0,0.75)" }}>
         <canvas ref={canvasRef} width={W} height={H} style={{ display:"block", maxWidth:"100%" }} />
       </div>
 
@@ -602,14 +597,14 @@ function App() {
 
           <BarGauge value={depth} status={dSt} label="Wall depth (target 15–45%)" />
 
-          <div style={{ marginTop:8, background:"rgba(4,10,22,0.6)", border:"1px solid #182030", borderRadius:4, padding:"7px 10px", fontSize:9, color:"#3a6070", lineHeight:1.65 }}>
+          <div style={{ marginTop:8, background:"#111114", border:"1px solid #2a2a32", borderRadius:4, padding:"7px 10px", fontSize:9, color:"#7a7a8c", lineHeight:1.65 }}>
             <span style={{ color:C[rSt] }}>▸ </span>
-            <span style={{ color:"#9dd0e8" }}>{wobbleVerdict}.</span>
-            {!beamOk&&<span style={{ color:"#e05050" }}> ⚠ Widen beam or reduce diffuser height for cross-illumination.</span>}
-            {depth>0.5&&<span style={{ color:"#f5a623" }}> ⚠ Walls &gt;50% diffuser height.</span>}
+            <span style={{ color:"#f0f0f5" }}>{wobbleVerdict}.</span>
+            {!beamOk&&<span style={{ color:"#ef4444" }}> ⚠ Widen beam or reduce diffuser height for cross-illumination.</span>}
+            {depth>0.5&&<span style={{ color:"#f59e0b" }}> ⚠ Walls &gt;50% diffuser height.</span>}
             <br/>
-            <span style={{ color:"#2a5060" }}>Δ = ledSpacing({p.ledSpacing}) × wallH({p.wallHeight}) / (diffH({p.lensHeight})−wallH({p.wallHeight})) = </span>
-            <span style={{ color:"#3ddc97" }}>{isFinite(shift)?shift.toFixed(2):"∞"} mm</span>
+            <span style={{ color:"#7a7a8c" }}>Δ = ledSpacing({p.ledSpacing}) × wallH({p.wallHeight}) / (diffH({p.lensHeight})−wallH({p.wallHeight})) = </span>
+            <span style={{ color:"#10b981" }}>{isFinite(shift)?shift.toFixed(2):"∞"} mm</span>
           </div>
         </div>
 
@@ -631,30 +626,30 @@ function App() {
           <BarGauge value={cc.clarity} status={clSt} label="Colour separation (100% = no mixing)" />
           <BarGauge value={Math.min(1,cc.effectiveBleed/p.ledSpacing)} status={cc.effectiveBleed<p.ledSpacing/2?"good":cc.effectiveBleed<p.ledSpacing?"warn":"bad"} label="Effective beam reach vs LED pitch" />
 
-          <div style={{ marginTop:8, background:"rgba(4,10,22,0.6)", border:"1px solid #182030", borderRadius:4, padding:"7px 10px", fontSize:9, color:"#3a6070", lineHeight:1.65 }}>
+          <div style={{ marginTop:8, background:"#111114", border:"1px solid #2a2a32", borderRadius:4, padding:"7px 10px", fontSize:9, color:"#7a7a8c", lineHeight:1.65 }}>
             <span style={{ color:C[clSt] }}>▸ </span>
-            <span style={{ color:"#9dd0e8" }}>{clarityVerdict}.</span>
-            {cc.numContrib>2.5&&<span style={{ color:"#e05050" }}> ⚠ {cc.numContrib.toFixed(1)} LEDs illuminate each zone — heavy colour blending.</span>}
-            {cc.numContrib<=1.2&&<span style={{ color:"#3ddc97" }}> Each zone lit by ~1 LED.</span>}
+            <span style={{ color:"#f0f0f5" }}>{clarityVerdict}.</span>
+            {cc.numContrib>2.5&&<span style={{ color:"#ef4444" }}> ⚠ {cc.numContrib.toFixed(1)} LEDs illuminate each zone — heavy colour blending.</span>}
+            {cc.numContrib<=1.2&&<span style={{ color:"#10b981" }}> Each zone lit by ~1 LED.</span>}
             <br/>
-            <span style={{ color:"#2a5060" }}>Effective reach at diffuser: </span>
-            <span style={{ color:"#4ab3d4" }}>{cc.effectiveBleed.toFixed(1)} mm</span>
-            <span style={{ color:"#2a5060" }}> vs LED pitch </span>
-            <span style={{ color:"#4ab3d4" }}>{p.ledSpacing} mm</span>
-            {cc.wallBleed<cc.beamBleed&&<span style={{ color:"#2a5060" }}> (walls clip beam reach: {cc.beamBleed.toFixed(1)}→{cc.effectiveBleed.toFixed(1)} mm)</span>}
+            <span style={{ color:"#7a7a8c" }}>Effective reach at diffuser: </span>
+            <span style={{ color:"#a855f7" }}>{cc.effectiveBleed.toFixed(1)} mm</span>
+            <span style={{ color:"#7a7a8c" }}> vs LED pitch </span>
+            <span style={{ color:"#a855f7" }}>{p.ledSpacing} mm</span>
+            {cc.wallBleed<cc.beamBleed&&<span style={{ color:"#7a7a8c" }}> (walls clip beam reach: {cc.beamBleed.toFixed(1)}→{cc.effectiveBleed.toFixed(1)} mm)</span>}
           </div>
 
           <details style={{ marginTop:8 }}>
-            <summary style={{ fontSize:8, color:"#2a5060", letterSpacing:"0.12em", textTransform:"uppercase", cursor:"pointer" }}>▸ How colour clarity is calculated</summary>
-            <div style={{ marginTop:7, fontSize:9, color:"#3a6878", lineHeight:1.7, background:"rgba(4,9,20,0.5)", border:"1px solid #0e2030", borderRadius:4, padding:"9px 11px" }}>
+            <summary style={{ fontSize:8, color:"#7a7a8c", letterSpacing:"0.12em", textTransform:"uppercase", cursor:"pointer" }}>▸ How colour clarity is calculated</summary>
+            <div style={{ marginTop:7, fontSize:9, color:"#7a7a8c", lineHeight:1.7, background:"#111114", border:"1px solid #2a2a32", borderRadius:4, padding:"9px 11px" }}>
               <p style={{ margin:"0 0 6px" }}>
-                <span style={{ color:"#7ec8e3" }}>Why farther diffuser = worse clarity:</span> from the centre of a wall gap on the white diffuser, a ray to an LED at horizontal offset dx passes through the gap only if it clears the wall tips — which requires <em>dx &lt; (wallGap/2) × diffuserH / wallH</em>. This reach grows linearly with diffuser height, so raising the diffuser admits more LEDs per zone and mixes more colours.
+                <span style={{ color:"#c4b5fd" }}>Why farther diffuser = worse clarity:</span> from the centre of a wall gap on the white diffuser, a ray to an LED at horizontal offset dx passes through the gap only if it clears the wall tips — which requires <em>dx &lt; (wallGap/2) × diffuserH / wallH</em>. This reach grows linearly with diffuser height, so raising the diffuser admits more LEDs per zone and mixes more colours.
               </p>
               <p style={{ margin:"0 0 6px" }}>
-                <span style={{ color:"#7ec8e3" }}>Two limits:</span> effective reach = min(beam reach, wall slit reach) = min(tan(halfBeam) × diffH, wallGap/2 × diffH / wallH). Beam angle caps it when the slit is wide; deep narrow walls cap it when the slit is tight.
+                <span style={{ color:"#c4b5fd" }}>Two limits:</span> effective reach = min(beam reach, wall slit reach) = min(tan(halfBeam) × diffH, wallGap/2 × diffH / wallH). Beam angle caps it when the slit is wide; deep narrow walls cap it when the slit is tight.
               </p>
               <p style={{ margin:0 }}>
-                <span style={{ color:"#7ec8e3" }}>Score = </span><em>min(1, ledSpacing / (2 × effectiveReach))</em>. 100% = each gap lit by 1 LED only. Taller walls help clarity but reduce wobble cross-illumination — the left tile shows that tradeoff live.
+                <span style={{ color:"#c4b5fd" }}>Score = </span><em>min(1, ledSpacing / (2 × effectiveReach))</em>. 100% = each gap lit by 1 LED only. Taller walls help clarity but reduce wobble cross-illumination — the left tile shows that tradeoff live.
               </p>
             </div>
           </details>
@@ -662,8 +657,8 @@ function App() {
       </div>
 
       {/* Legend */}
-      <div style={{ display:"flex", gap:16, fontSize:9, color:"#243f56", flexWrap:"wrap", justifyContent:"center" }}>
-        {[["rgba(255,210,95,0.8)","LED light cone"],["rgba(125,205,255,0.8)","White diffuser"],["rgba(65,125,200,0.8)","Shadow walls"],["rgba(255,238,155,0.8)","Diffused output"]].map(([c,l])=>(
+      <div style={{ display:"flex", gap:16, fontSize:9, color:"#7a7a8c", flexWrap:"wrap", justifyContent:"center" }}>
+        {[["rgba(255,210,95,0.8)","LED light cone"],["rgba(6,182,212,0.8)","White diffuser"],["rgba(124,58,237,0.8)","Shadow walls"],["rgba(255,238,155,0.8)","Diffused output"]].map(([c,l])=>(
           <div key={l} style={{ display:"flex", alignItems:"center", gap:5 }}>
             <div style={{ width:9,height:9,background:c,borderRadius:2 }} />
             <span>{l}</span>
@@ -676,10 +671,10 @@ function App() {
       {/* ══ RIGHT: sticky control pane ══ */}
       <div className="wf-pane" style={{
         flex:"0 0 340px", width:340, height:"100vh", overflowY:"auto",
-        background:"rgba(6,13,26,0.96)", borderLeft:"1px solid #152030",
+        background:"#111114", borderLeft:"1px solid #2a2a32",
         padding:"18px 16px 40px", display:"flex", flexDirection:"column", gap:12,
       }}>
-        <div style={{ fontSize:9, letterSpacing:"0.28em", color:"#2a5870", textTransform:"uppercase", paddingBottom:4, borderBottom:"1px solid #122030" }}>
+        <div style={{ fontSize:9, letterSpacing:"0.28em", color:"#7a7a8c", textTransform:"uppercase", paddingBottom:4, borderBottom:"1px solid #2a2a32" }}>
           Controls
         </div>
       {/* ── STEP 1: Fixed Parameters ───────────────────────────────────────── */}
@@ -688,13 +683,13 @@ function App() {
 
         {/* LED preset */}
         <div style={{ marginBottom:14 }}>
-          <div style={{ fontSize:9, color:"#3a6878", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>LED type → beam angle</div>
+          <div style={{ fontSize:9, color:"#7a7a8c", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>LED type → beam angle</div>
           <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
             {LED_PRESETS.map((pr,i)=>(
               <button key={i} onClick={()=>selectPreset(i)} title={pr.note} style={{
-                background: fixed.presetIdx===i?"rgba(74,179,212,0.18)":"rgba(10,22,40,0.6)",
-                border:`1px solid ${fixed.presetIdx===i?"#4ab3d4":"#1e3a50"}`,
-                color: fixed.presetIdx===i?"#8dd8f0":"#3a6878",
+                background: fixed.presetIdx===i?"rgba(124,58,237,0.18)":"rgba(17,17,20,0.8)",
+                border:`1px solid ${fixed.presetIdx===i?"#a855f7":"#2a2a32"}`,
+                color: fixed.presetIdx===i?"#c4b5fd":"#7a7a8c",
                 borderRadius:4, padding:"5px 10px", cursor:"pointer",
                 fontSize:10, letterSpacing:"0.05em", transition:"all 0.15s",
               }}>
@@ -708,8 +703,8 @@ function App() {
             </div>
           )}
           {fixed.presetIdx < LED_PRESETS.length-1 && (
-            <div style={{ marginTop:6, fontSize:9, color:"#2a5060" }}>
-              {LED_PRESETS[fixed.presetIdx].note} · beam angle locked to <span style={{ color:"#4ab3d4" }}>{fixed.beamAngle}°</span>
+            <div style={{ marginTop:6, fontSize:9, color:"#7a7a8c" }}>
+              {LED_PRESETS[fixed.presetIdx].note} · beam angle locked to <span style={{ color:"#a855f7" }}>{fixed.beamAngle}°</span>
             </div>
           )}
         </div>
@@ -722,9 +717,9 @@ function App() {
         </div>
 
         <div style={{ marginTop:10, display:"flex", gap:16, flexWrap:"wrap" }}>
-          <div style={{ fontSize:9, color:"#2a5060" }}>Wall pitch: <span style={{ color:"#4ab3d4" }}>{(fixed.wallGap+fixed.wallThickness).toFixed(1)} mm</span></div>
-          <div style={{ fontSize:9, color:"#2a5060" }}>Solid fill: <span style={{ color:C[fSt] }}>{(solidFill(fixed)*100).toFixed(0)}%</span> {fSt==="bad"?"⚠ too dense":""}</div>
-          <div style={{ fontSize:9, color:"#2a5060" }}>Beam half-angle: <span style={{ color:"#4ab3d4" }}>{(fixed.beamAngle/2).toFixed(0)}°</span></div>
+          <div style={{ fontSize:9, color:"#7a7a8c" }}>Wall pitch: <span style={{ color:"#a855f7" }}>{(fixed.wallGap+fixed.wallThickness).toFixed(1)} mm</span></div>
+          <div style={{ fontSize:9, color:"#7a7a8c" }}>Solid fill: <span style={{ color:C[fSt] }}>{(solidFill(fixed)*100).toFixed(0)}%</span> {fSt==="bad"?"⚠ too dense":""}</div>
+          <div style={{ fontSize:9, color:"#7a7a8c" }}>Beam half-angle: <span style={{ color:"#a855f7" }}>{(fixed.beamAngle/2).toFixed(0)}°</span></div>
         </div>
       </div>
 
@@ -737,11 +732,11 @@ function App() {
         </div>
         <div style={{ marginTop:10, display:"flex", gap:10, flexWrap:"wrap" }}>
           <button onClick={()=>{ const o=suggestOptimal(p); setFixed(f=>({...f,wallGap:o.wallGap,wallThickness:o.wallThickness})); setHeights(h=>({...h,wallHeight:o.wallHeight})); }}
-            style={{ background:"rgba(61,220,151,0.12)", border:"1px solid #3ddc9744", color:"#3ddc97", borderRadius:4, padding:"5px 14px", cursor:"pointer", fontSize:10, letterSpacing:"0.12em", textTransform:"uppercase" }}>
+            style={{ background:"rgba(16,185,129,0.12)", border:"1px solid #10b98144", color:"#10b981", borderRadius:4, padding:"5px 14px", cursor:"pointer", fontSize:10, letterSpacing:"0.12em", textTransform:"uppercase" }}>
             ✦ Auto-Optimize
           </button>
           <button onClick={()=>{setFixed({ledSpacing:DEFAULTS.ledSpacing,wallGap:DEFAULTS.wallGap,wallThickness:DEFAULTS.wallThickness,beamAngle:DEFAULTS.beamAngle,presetIdx:DEFAULTS.presetIdx});setHeights({lensHeight:DEFAULTS.lensHeight,wallHeight:DEFAULTS.wallHeight});}}
-            style={{ background:"rgba(14,28,48,0.6)", border:"1px solid #182030", color:"#2e5070", borderRadius:4, padding:"5px 14px", cursor:"pointer", fontSize:10, letterSpacing:"0.12em", textTransform:"uppercase" }}>
+            style={{ background:"#111114", border:"1px solid #2a2a32", color:"#7a7a8c", borderRadius:4, padding:"5px 14px", cursor:"pointer", fontSize:10, letterSpacing:"0.12em", textTransform:"uppercase" }}>
             Reset
           </button>
         </div>
