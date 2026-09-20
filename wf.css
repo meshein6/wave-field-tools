@@ -99,7 +99,7 @@ select { cursor: pointer; }
 
 /* ── Buttons ── */
 .wf-btn {
-  font-family: var(--sans); font-size: 12px; font-weight: 600;
+  font-family: var(--sans); font-size: 12px; font-weight: 500;
   background: var(--bg-secondary); border: 1px solid var(--border);
   color: var(--text-muted); border-radius: 7px; padding: 7px 14px;
   cursor: pointer; transition: all .15s;
@@ -138,3 +138,11 @@ select { cursor: pointer; }
 }
 .wf-footer a { color: var(--text-muted); text-decoration: none; }
 .wf-footer a:hover { color: var(--accent-glow); }
+
+
+/* ── Toolbar labels (shared by tool pages) ── */
+.toolbar-label {
+  font-size: 11px; font-weight: 500; letter-spacing: 0;
+  text-transform: none; color: var(--text-muted);
+}
+.wf-section-label { letter-spacing: 0.08em; font-size: 11px; font-weight: 600; }
