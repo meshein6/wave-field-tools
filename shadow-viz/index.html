@@ -17,6 +17,17 @@
     text-transform: uppercase; border: 1px solid #1a3040; padding: 4px 10px;
     background: rgba(4,8,16,0.85); z-index: 100; }
   a.back:hover { color: #4ab3d4; border-color: #4ab3d433; }
+  .wf-pane::-webkit-scrollbar, .wf-main::-webkit-scrollbar { width: 6px; background: #04080f; }
+  .wf-pane::-webkit-scrollbar-thumb, .wf-main::-webkit-scrollbar-thumb { background: #1a3040; border-radius: 3px; }
+  @media (max-width: 1100px) {
+    .wf-tiles { grid-template-columns: 1fr !important; }
+  }
+  @media (max-width: 860px) {
+    body > div > div[style*="row"] { flex-direction: column !important; }
+    .wf-main { height: auto !important; overflow: visible !important; }
+    .wf-pane { flex: 0 0 auto !important; width: 100% !important; height: auto !important;
+               border-left: none !important; border-top: 1px solid #152030; }
+  }
 </style>
 </head>
 <body>
@@ -550,7 +561,10 @@ function App() {
   const clarityVerdict = cc.clarity>0.85?"Colors sharp & distinct":cc.clarity>0.65?"Minor neighbour mixing":cc.clarity>0.45?"Noticeable colour bleed":"Heavy colour mixing";
 
   return (
-    <div style={{ background:"linear-gradient(155deg,#040810 0%,#060c18 60%,#040a14 100%)", minHeight:"100vh", display:"flex", flexDirection:"column", alignItems:"center", padding:"20px 14px 40px", fontFamily:"'Courier New',monospace", gap:14 }}>
+    <div style={{ background:"linear-gradient(155deg,#040810 0%,#060c18 60%,#040a14 100%)", minHeight:"100vh", display:"flex", flexDirection:"row", alignItems:"stretch", fontFamily:"'Courier New',monospace" }}>
+
+      {/* ══ LEFT: canvas + analytics (scrolls) ══ */}
+      <div className="wf-main" style={{ flex:"1 1 0", minWidth:0, overflowY:"auto", height:"100vh", display:"flex", flexDirection:"column", alignItems:"center", padding:"20px 16px 40px", gap:14 }}>
 
       {/* Header */}
       <div style={{ textAlign:"center" }}>
@@ -561,78 +575,13 @@ function App() {
         <div style={{ fontSize:9, color:"#1c4055", letterSpacing:"0.18em" }}>WLED DIFFUSER · WALL SHADOWS · WOBBLE & COLOUR CLARITY</div>
       </div>
 
-      {/* ── STEP 1: Fixed Parameters ───────────────────────────────────────── */}
-      <div style={{ ...panel, width:"100%", maxWidth:860 }}>
-        <Label>① Fixed Parameters — enter your hardware values</Label>
-
-        {/* LED preset */}
-        <div style={{ marginBottom:14 }}>
-          <div style={{ fontSize:9, color:"#3a6878", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>LED type → beam angle</div>
-          <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
-            {LED_PRESETS.map((pr,i)=>(
-              <button key={i} onClick={()=>selectPreset(i)} title={pr.note} style={{
-                background: fixed.presetIdx===i?"rgba(74,179,212,0.18)":"rgba(10,22,40,0.6)",
-                border:`1px solid ${fixed.presetIdx===i?"#4ab3d4":"#1e3a50"}`,
-                color: fixed.presetIdx===i?"#8dd8f0":"#3a6878",
-                borderRadius:4, padding:"5px 10px", cursor:"pointer",
-                fontSize:10, letterSpacing:"0.05em", transition:"all 0.15s",
-              }}>
-                {pr.name}{pr.angle?<span style={{ marginLeft:5, opacity:0.6, fontSize:9 }}>{pr.angle}°</span>:null}
-              </button>
-            ))}
-          </div>
-          {fixed.presetIdx === LED_PRESETS.length-1 && (
-            <div style={{ marginTop:8 }}>
-              <NumField label="Custom Beam Angle" value={fixed.beamAngle} min={10} max={170} step={5} onChange={setF("beamAngle")} unit="°" />
-            </div>
-          )}
-          {fixed.presetIdx < LED_PRESETS.length-1 && (
-            <div style={{ marginTop:6, fontSize:9, color:"#2a5060" }}>
-              {LED_PRESETS[fixed.presetIdx].note} · beam angle locked to <span style={{ color:"#4ab3d4" }}>{fixed.beamAngle}°</span>
-            </div>
-          )}
-        </div>
-
-        {/* Three fixed inputs */}
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(190px,1fr))", gap:"12px 24px" }}>
-          <NumField label="LED Spacing" value={fixed.ledSpacing} min={5} max={60} step={0.5} onChange={setF("ledSpacing")} unit=" mm" />
-          <NumField label="Wall Gap (open)"  value={fixed.wallGap}   min={1} max={30} step={0.5} onChange={setF("wallGap")}   unit=" mm" />
-          <NumField label="Wall Thickness"   value={fixed.wallThickness} min={0.3} max={4} step={0.1} onChange={setF("wallThickness")} unit=" mm" />
-        </div>
-
-        <div style={{ marginTop:10, display:"flex", gap:16, flexWrap:"wrap" }}>
-          <div style={{ fontSize:9, color:"#2a5060" }}>Wall pitch: <span style={{ color:"#4ab3d4" }}>{(fixed.wallGap+fixed.wallThickness).toFixed(1)} mm</span></div>
-          <div style={{ fontSize:9, color:"#2a5060" }}>Solid fill: <span style={{ color:C[fSt] }}>{(solidFill(fixed)*100).toFixed(0)}%</span> {fSt==="bad"?"⚠ too dense":""}</div>
-          <div style={{ fontSize:9, color:"#2a5060" }}>Beam half-angle: <span style={{ color:"#4ab3d4" }}>{(fixed.beamAngle/2).toFixed(0)}°</span></div>
-        </div>
-      </div>
-
       {/* Canvas */}
       <div style={{ border:"1px solid #182840", borderRadius:6, overflow:"hidden", maxWidth:"100%", boxShadow:"0 0 38px rgba(74,179,212,0.06),0 6px 55px rgba(0,0,0,0.75)" }}>
         <canvas ref={canvasRef} width={W} height={H} style={{ display:"block", maxWidth:"100%" }} />
       </div>
 
-      {/* ── STEP 2: Variable heights ───────────────────────────────────────── */}
-      <div style={{ ...panel, width:"100%", maxWidth:860 }}>
-        <Label>② Adjust heights — diffuser height and wall height</Label>
-        <div style={{ display:"flex", gap:32, flexWrap:"wrap" }}>
-          <HeightSlider label="Diffuser Height" value={heights.lensHeight} min={5} max={85} step={1} onChange={setH("lensHeight")} unit=" mm" />
-          <HeightSlider label="Wall Height" value={heights.wallHeight} min={1} max={Math.max(2,heights.lensHeight-2)} step={0.5} onChange={setH("wallHeight")} unit=" mm" />
-        </div>
-        <div style={{ marginTop:10, display:"flex", gap:10, flexWrap:"wrap" }}>
-          <button onClick={()=>{ const o=suggestOptimal(p); setFixed(f=>({...f,wallGap:o.wallGap,wallThickness:o.wallThickness})); setHeights(h=>({...h,wallHeight:o.wallHeight})); }}
-            style={{ background:"rgba(61,220,151,0.12)", border:"1px solid #3ddc9744", color:"#3ddc97", borderRadius:4, padding:"5px 14px", cursor:"pointer", fontSize:10, letterSpacing:"0.12em", textTransform:"uppercase" }}>
-            ✦ Auto-Optimize
-          </button>
-          <button onClick={()=>{setFixed({ledSpacing:DEFAULTS.ledSpacing,wallGap:DEFAULTS.wallGap,wallThickness:DEFAULTS.wallThickness,beamAngle:DEFAULTS.beamAngle,presetIdx:DEFAULTS.presetIdx});setHeights({lensHeight:DEFAULTS.lensHeight,wallHeight:DEFAULTS.wallHeight});}}
-            style={{ background:"rgba(14,28,48,0.6)", border:"1px solid #182030", color:"#2e5070", borderRadius:4, padding:"5px 14px", cursor:"pointer", fontSize:10, letterSpacing:"0.12em", textTransform:"uppercase" }}>
-            Reset
-          </button>
-        </div>
-      </div>
-
       {/* ── STEP 3: Dual analytics tiles ──────────────────────────────────── */}
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, width:"100%", maxWidth:860 }}>
+      <div className="wf-tiles" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, width:"100%", maxWidth:860 }}>
 
         {/* LEFT: Wobble */}
         <div style={panel}>
@@ -654,7 +603,7 @@ function App() {
             <span style={{ color:C[rSt] }}>▸ </span>
             <span style={{ color:"#9dd0e8" }}>{wobbleVerdict}.</span>
             {!beamOk&&<span style={{ color:"#e05050" }}> ⚠ Widen beam or reduce diffuser height for cross-illumination.</span>}
-            {depth>0.5&&<span style={{ color:"#f5a623" }}> ⚠ Walls >50% diffuser height.</span>}
+            {depth>0.5&&<span style={{ color:"#f5a623" }}> ⚠ Walls &gt;50% diffuser height.</span>}
             <br/>
             <span style={{ color:"#2a5060" }}>Δ = ledSpacing({p.ledSpacing}) × wallH({p.wallHeight}) / (diffH({p.lensHeight})−wallH({p.wallHeight})) = </span>
             <span style={{ color:"#3ddc97" }}>{isFinite(shift)?shift.toFixed(2):"∞"} mm</span>
@@ -718,6 +667,84 @@ function App() {
           </div>
         ))}
       </div>
+
+      </div>{/* ══ end LEFT ══ */}
+
+      {/* ══ RIGHT: sticky control pane ══ */}
+      <div className="wf-pane" style={{
+        flex:"0 0 340px", width:340, height:"100vh", overflowY:"auto",
+        background:"rgba(6,13,26,0.96)", borderLeft:"1px solid #152030",
+        padding:"18px 16px 40px", display:"flex", flexDirection:"column", gap:12,
+      }}>
+        <div style={{ fontSize:9, letterSpacing:"0.28em", color:"#2a5870", textTransform:"uppercase", paddingBottom:4, borderBottom:"1px solid #122030" }}>
+          Controls
+        </div>
+      {/* ── STEP 1: Fixed Parameters ───────────────────────────────────────── */}
+      <div style={{ ...panel, width:"100%" }}>
+        <Label>① Fixed Parameters — enter your hardware values</Label>
+
+        {/* LED preset */}
+        <div style={{ marginBottom:14 }}>
+          <div style={{ fontSize:9, color:"#3a6878", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>LED type → beam angle</div>
+          <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
+            {LED_PRESETS.map((pr,i)=>(
+              <button key={i} onClick={()=>selectPreset(i)} title={pr.note} style={{
+                background: fixed.presetIdx===i?"rgba(74,179,212,0.18)":"rgba(10,22,40,0.6)",
+                border:`1px solid ${fixed.presetIdx===i?"#4ab3d4":"#1e3a50"}`,
+                color: fixed.presetIdx===i?"#8dd8f0":"#3a6878",
+                borderRadius:4, padding:"5px 10px", cursor:"pointer",
+                fontSize:10, letterSpacing:"0.05em", transition:"all 0.15s",
+              }}>
+                {pr.name}{pr.angle?<span style={{ marginLeft:5, opacity:0.6, fontSize:9 }}>{pr.angle}°</span>:null}
+              </button>
+            ))}
+          </div>
+          {fixed.presetIdx === LED_PRESETS.length-1 && (
+            <div style={{ marginTop:8 }}>
+              <NumField label="Custom Beam Angle" value={fixed.beamAngle} min={10} max={170} step={5} onChange={setF("beamAngle")} unit="°" />
+            </div>
+          )}
+          {fixed.presetIdx < LED_PRESETS.length-1 && (
+            <div style={{ marginTop:6, fontSize:9, color:"#2a5060" }}>
+              {LED_PRESETS[fixed.presetIdx].note} · beam angle locked to <span style={{ color:"#4ab3d4" }}>{fixed.beamAngle}°</span>
+            </div>
+          )}
+        </div>
+
+        {/* Three fixed inputs */}
+        <div style={{ display:"grid", gridTemplateColumns:"1fr", gap:"12px 24px" }}>
+          <NumField label="LED Spacing" value={fixed.ledSpacing} min={5} max={60} step={0.5} onChange={setF("ledSpacing")} unit=" mm" />
+          <NumField label="Wall Gap (open)"  value={fixed.wallGap}   min={1} max={30} step={0.5} onChange={setF("wallGap")}   unit=" mm" />
+          <NumField label="Wall Thickness"   value={fixed.wallThickness} min={0.3} max={4} step={0.1} onChange={setF("wallThickness")} unit=" mm" />
+        </div>
+
+        <div style={{ marginTop:10, display:"flex", gap:16, flexWrap:"wrap" }}>
+          <div style={{ fontSize:9, color:"#2a5060" }}>Wall pitch: <span style={{ color:"#4ab3d4" }}>{(fixed.wallGap+fixed.wallThickness).toFixed(1)} mm</span></div>
+          <div style={{ fontSize:9, color:"#2a5060" }}>Solid fill: <span style={{ color:C[fSt] }}>{(solidFill(fixed)*100).toFixed(0)}%</span> {fSt==="bad"?"⚠ too dense":""}</div>
+          <div style={{ fontSize:9, color:"#2a5060" }}>Beam half-angle: <span style={{ color:"#4ab3d4" }}>{(fixed.beamAngle/2).toFixed(0)}°</span></div>
+        </div>
+      </div>
+
+      {/* ── STEP 2: Variable heights ───────────────────────────────────────── */}
+      <div style={{ ...panel, width:"100%" }}>
+        <Label>② Adjust heights — diffuser height and wall height</Label>
+        <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+          <HeightSlider label="Diffuser Height" value={heights.lensHeight} min={5} max={85} step={1} onChange={setH("lensHeight")} unit=" mm" />
+          <HeightSlider label="Wall Height" value={heights.wallHeight} min={1} max={Math.max(2,heights.lensHeight-2)} step={0.5} onChange={setH("wallHeight")} unit=" mm" />
+        </div>
+        <div style={{ marginTop:10, display:"flex", gap:10, flexWrap:"wrap" }}>
+          <button onClick={()=>{ const o=suggestOptimal(p); setFixed(f=>({...f,wallGap:o.wallGap,wallThickness:o.wallThickness})); setHeights(h=>({...h,wallHeight:o.wallHeight})); }}
+            style={{ background:"rgba(61,220,151,0.12)", border:"1px solid #3ddc9744", color:"#3ddc97", borderRadius:4, padding:"5px 14px", cursor:"pointer", fontSize:10, letterSpacing:"0.12em", textTransform:"uppercase" }}>
+            ✦ Auto-Optimize
+          </button>
+          <button onClick={()=>{setFixed({ledSpacing:DEFAULTS.ledSpacing,wallGap:DEFAULTS.wallGap,wallThickness:DEFAULTS.wallThickness,beamAngle:DEFAULTS.beamAngle,presetIdx:DEFAULTS.presetIdx});setHeights({lensHeight:DEFAULTS.lensHeight,wallHeight:DEFAULTS.wallHeight});}}
+            style={{ background:"rgba(14,28,48,0.6)", border:"1px solid #182030", color:"#2e5070", borderRadius:4, padding:"5px 14px", cursor:"pointer", fontSize:10, letterSpacing:"0.12em", textTransform:"uppercase" }}>
+            Reset
+          </button>
+        </div>
+      </div>
+      </div>{/* ══ end RIGHT ══ */}
+
     </div>
   );
 }
