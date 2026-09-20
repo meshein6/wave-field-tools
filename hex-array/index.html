@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>LED Hex Array Calculator — Wave Field Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:      #07090b;
+    --bg2:     #0c1014;
+    --bg3:     #111820;
+    --border:  #1e2d3a;
+    --border2: #2a3f52;
+    --amber:   #f4a832;
+    --amber2:  #ffcb6b;
+    --amber3:  #7a4e10;
+    --teal:    #2dd4a8;
+    --teal2:   #0a4034;
+    --red:     #ff5c5c;
+    --text:    #c8d8e8;
+    --text2:   #5a7a90;
+    --mono:    'Share Tech Mono', monospace;
+    --cond:    'Barlow Condensed', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--cond); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+  header { border-bottom: 1px solid var(--border); padding: 14px 28px; display: flex; align-items: baseline; gap: 16px; background: var(--bg2); }
+  header .title { font-size: 22px; font-weight: 700; letter-spacing: .08em; color: var(--amber); text-transform: uppercase; }
+  header .sub { font-family: var(--mono); font-size: 10px; color: var(--text2); letter-spacing: .18em; }
+  .version-tag { margin-left: auto; font-family: var(--mono); font-size: 9px; color: var(--amber3); border: 1px solid var(--amber3); padding: 2px 8px; letter-spacing: .12em; }
+  a.back { font-family: var(--mono); font-size: 9px; color: var(--text2); text-decoration: none; letter-spacing: .15em; text-transform: uppercase; border: 1px solid var(--border); padding: 3px 10px; margin-right: 8px; }
+  a.back:hover { color: var(--amber); border-color: var(--amber3); }
+  .main-grid { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+  .controls { background: var(--bg2); border-top: 1px solid var(--border); overflow-y: auto; overflow-x: hidden; padding: 0; flex: 0 0 33.333%; display: flex; flex-direction: row; flex-wrap: wrap; align-content: flex-start; gap: 0; }
+  .panel-section { border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 12px 16px; min-width: 220px; flex: 1 1 220px; }
+  .panel-section-title { font-family: var(--mono); font-size: 9px; letter-spacing: .25em; color: var(--amber3); text-transform: uppercase; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .panel-section-title::before { content: ''; display: block; width: 6px; height: 6px; background: var(--amber); clip-path: polygon(50% 0%,100% 50%,50% 100%,0% 50%); }
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label { display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; font-weight: 600; letter-spacing: .06em; color: var(--text); margin-bottom: 6px; text-transform: uppercase; }
+  .field label .unit { font-family: var(--mono); font-size: 10px; color: var(--text2); font-weight: 400; text-transform: lowercase; }
+  .field input[type=range] { width: 100%; height: 4px; -webkit-appearance: none; background: var(--border2); outline: none; border-radius: 0; cursor: pointer; }
+  .field input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--amber); clip-path: polygon(50% 0%,100% 50%,50% 100%,0% 50%); cursor: pointer; }
+  .field input[type=range]:hover::-webkit-slider-thumb { background: var(--amber2); }
+  .field input[type=number] { width: 100%; background: var(--bg3); border: 1px solid var(--border2); color: var(--amber2); font-family: var(--mono); font-size: 14px; padding: 6px 10px; outline: none; -moz-appearance: textfield; }
+  .field input[type=number]::-webkit-inner-spin-button, .field input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+  .field input[type=number]:focus { border-color: var(--amber); }
+  .val-display { font-family: var(--mono); font-size: 14px; color: var(--amber2); text-align: right; }
+  .rgb-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .rgb-channel label { font-size: 10px; font-family: var(--mono); letter-spacing: .1em; margin-bottom: 4px; display: flex; justify-content: space-between; }
+  .rgb-channel input[type=range] { width: 100%; height: 4px; -webkit-appearance: none; outline: none; border-radius: 0; cursor: pointer; }
+  .rgb-channel input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; clip-path: polygon(50% 0%,100% 50%,50% 100%,0% 50%); cursor: pointer; }
+  #slR { background: #3a1010; } #slR::-webkit-slider-thumb { background: #ff5c5c; }
+  #slG { background: #0e2e18; } #slG::-webkit-slider-thumb { background: #4dff90; }
+  #slB { background: #0e1e3a; } #slB::-webkit-slider-thumb { background: #5c9eff; }
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+  .stat-card { background: var(--bg3); border: 1px solid var(--border); padding: 10px 12px; position: relative; overflow: hidden; }
+  .stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 2px; height: 100%; background: var(--amber3); }
+  .stat-card.highlight::before { background: var(--amber); }
+  .stat-card.warn::before { background: var(--red); }
+  .stat-card.good::before { background: var(--teal); }
+  .stat-label { font-family: var(--mono); font-size: 8px; letter-spacing: .2em; color: var(--text2); text-transform: uppercase; margin-bottom: 4px; }
+  .stat-value { font-family: var(--mono); font-size: 18px; color: var(--amber2); line-height: 1; }
+  .stat-value.big { font-size: 22px; color: var(--amber); }
+  .stat-value.green { color: var(--teal); }
+  .stat-value.red { color: var(--red); }
+  .stat-sub { font-family: var(--mono); font-size: 9px; color: var(--text2); margin-top: 2px; }
+  .psu-bar { background: var(--bg3); border: 1px solid var(--border); padding: 10px; }
+  .psu-bar-label { font-family: var(--mono); font-size: 8px; letter-spacing: .2em; color: var(--text2); margin-bottom: 8px; }
+  .psu-meter-track { width: 100%; height: 8px; background: var(--border); position: relative; margin-bottom: 6px; }
+  .psu-meter-fill { height: 100%; background: linear-gradient(90deg, var(--teal), var(--amber), var(--red)); transition: width .3s; }
+  .psu-ticks { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 8px; color: var(--text2); }
+  .psu-rec { margin-top: 8px; font-family: var(--mono); font-size: 11px; color: var(--amber2); }
+  .canvas-panel { display: flex; flex-direction: column; overflow: hidden; background: var(--bg); flex: 1 1 0; min-height: 0; }
+  .canvas-toolbar { border-bottom: 1px solid var(--border); padding: 8px 16px; display: flex; align-items: center; gap: 12px; background: var(--bg2); flex-shrink: 0; }
+  .toolbar-label { font-family: var(--mono); font-size: 9px; letter-spacing: .15em; color: var(--text2); }
+  .toolbar-btn { font-family: var(--mono); font-size: 10px; letter-spacing: .1em; background: transparent; border: 1px solid var(--border2); color: var(--text); padding: 4px 12px; cursor: pointer; text-transform: uppercase; transition: all .15s; }
+  .toolbar-btn:hover, .toolbar-btn.active { border-color: var(--amber); color: var(--amber); background: #1a1000; }
+  .toolbar-sep { width: 1px; height: 18px; background: var(--border); }
+  .coord-display { margin-left: auto; font-family: var(--mono); font-size: 10px; color: var(--text2); min-width: 180px; text-align: right; }
+  .svg-container { flex: 1; overflow: hidden; display: flex; align-items: center; justify-content: center; position: relative; cursor: crosshair; }
+  #main-svg { max-width: 100%; max-height: 100%; }
+  #tooltip { position: absolute; pointer-events: none; background: var(--bg2); border: 1px solid var(--amber3); padding: 6px 10px; font-family: var(--mono); font-size: 10px; color: var(--amber2); line-height: 1.6; display: none; z-index: 10; }
+  ::-webkit-scrollbar { width: 4px; height: 4px; background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); }
+  select { width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--amber2);font-family:var(--mono);font-size:12px;padding:6px 10px;outline:none;cursor:pointer; }
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="../">← Tools</a>
+  <span class="title">LED Hex Array</span>
+  <span class="sub">WS2812B · RECTILINEAR GRID · POWER CALCULATOR</span>
+  <span class="version-tag">REV 1.0</span>
+</header>
+<div class="main-grid">
+  <div class="canvas-panel">
+    <div class="canvas-toolbar">
+      <span class="toolbar-label">VIEW</span>
+      <button class="toolbar-btn active" id="btnAll" onclick="setView('all')">ALL LEDs</button>
+      <button class="toolbar-btn" id="btnGrid" onclick="setView('grid')">GRID ONLY</button>
+      <button class="toolbar-btn" id="btnHex" onclick="setView('hex')">BOUNDARY</button>
+      <div class="toolbar-sep"></div>
+      <span class="toolbar-label">COLOR</span>
+      <button class="toolbar-btn active" id="btnColor" onclick="setColor('live')">LIVE</button>
+      <button class="toolbar-btn" id="btnMono" onclick="setColor('mono')">MONO</button>
+      <div class="coord-display" id="coordDisplay">X: — mm &nbsp; Y: — mm</div>
+    </div>
+    <div class="svg-container" id="svgContainer">
+      <svg id="main-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div id="tooltip"></div>
+    </div>
+  </div>
+  <div class="controls">
+    <div class="panel-section">
+      <div class="panel-section-title">Hex Geometry</div>
+      <div class="field"><label>Flat-to-Flat <span class="unit">mm</span></label><input type="number" id="inFTF" value="280" min="10" max="800" step="1"/></div>
+      <div class="field"><label>LED Spacing c–c <span class="unit">mm</span></label><input type="number" id="inSpacing" value="10" min="1" max="30" step="0.5"/></div>
+      <div class="field"><label>Strip Width <span class="unit">mm</span></label><input type="number" id="inStripWidth" value="10" min="1" max="30" step="0.5"/></div>
+      <div class="field">
+        <label style="margin-bottom:6px">Strip Direction</label>
+        <div style="display:flex;gap:2px">
+          <button class="toolbar-btn active" id="btnStripH" onclick="setStripDir('h')" style="flex:1;font-size:9px;padding:5px 4px">HORIZONTAL →</button>
+          <button class="toolbar-btn" id="btnStripV" onclick="setStripDir('v')" style="flex:1;font-size:9px;padding:5px 4px">VERTICAL ↑</button>
+        </div>
+      </div>
+      <div class="field"><label>Edge Padding <span class="unit">mm</span></label><input type="number" id="inPadding" value="10" min="0" max="50" step="1"/></div>
+      <div class="field">
+        <label style="margin-bottom:6px">X Axis Alignment</label>
+        <div style="display:flex;gap:2px">
+          <button class="toolbar-btn active" id="btnCenterXOn" onclick="setCenterMode('x','on')" style="flex:1;font-size:9px;padding:5px 4px">ON AXIS</button>
+          <button class="toolbar-btn" id="btnCenterXSplit" onclick="setCenterMode('x','split')" style="flex:1;font-size:9px;padding:5px 4px">SPLIT</button>
+        </div>
+      </div>
+      <div class="field">
+        <label style="margin-bottom:6px">Y Axis Alignment</label>
+        <div style="display:flex;gap:2px">
+          <button class="toolbar-btn active" id="btnCenterYOn" onclick="setCenterMode('y','on')" style="flex:1;font-size:9px;padding:5px 4px">ON AXIS</button>
+          <button class="toolbar-btn" id="btnCenterYSplit" onclick="setCenterMode('y','split')" style="flex:1;font-size:9px;padding:5px 4px">SPLIT</button>
+        </div>
+      </div>
+    </div>
+    <div class="panel-section">
+      <div class="panel-section-title">LED Specs</div>
+      <div class="field">
+        <label>LED Type</label>
+        <select id="selLedType">
+          <option value="custom">— Custom —</option>
+          <optgroup label="WS2812B">
+            <option value="ws2812b_5050" selected>WS2812B 5050 · 5mm · 20mA/ch</option>
+            <option value="ws2812b_2020">WS2812B 2020 · 2mm · 5mA/ch</option>
+            <option value="ws2812b_3535">WS2812B 3535 · 3.5mm · 12mA/ch</option>
+          </optgroup>
+          <optgroup label="SK6812">
+            <option value="sk6812_5050">SK6812 5050 · 5mm · 20mA/ch</option>
+            <option value="sk6812_mini">SK6812 Mini 3535 · 3.5mm · 12mA/ch</option>
+            <option value="sk6812_2020">SK6812 2020 · 2mm · 5mA/ch</option>
+          </optgroup>
+          <optgroup label="SK6805">
+            <option value="sk6805_ec15">SK6805-EC15 · 1.5mm · 1.5mA/ch</option>
+            <option value="sk6805_ec10">SK6805-EC10 · 1mm · 1mA/ch</option>
+          </optgroup>
+          <optgroup label="APA / SK9822">
+            <option value="apa102_5050">APA102 5050 · 5mm · 20mA/ch</option>
+            <option value="sk9822_5050">SK9822 5050 · 5mm · 20mA/ch</option>
+          </optgroup>
+          <optgroup label="WS2815 / WS2813">
+            <option value="ws2815_5050">WS2815 5050 · 5mm · 20mA/ch · 12V</option>
+            <option value="ws2813_5050">WS2813 5050 · 5mm · 20mA/ch</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="field"><label>Max mA/channel <span class="val-display" id="vMA">20</span></label><input type="range" id="slMA" min="0.5" max="25" step="0.5" value="20"/></div>
+      <div class="field"><label>LED Size <span class="unit">mm</span></label><input type="number" id="inLedSize" value="5" min="0.5" max="10" step="0.5"/></div>
+      <div class="field"><label>Voltage <span class="unit">V</span></label><input type="number" id="inVolt" value="5" min="4.5" max="13" step="0.1"/></div>
+    </div>
+    <div class="panel-section">
+      <div class="panel-section-title">Color / Brightness</div>
+      <div class="field"><label>Global Brightness <span class="val-display" id="vBright">100%</span></label><input type="range" id="slBright" min="1" max="100" value="100"/></div>
+      <div class="rgb-row">
+        <div class="rgb-channel"><label style="color:#ff5c5c">R <span id="vR">255</span></label><input type="range" id="slR" min="0" max="255" value="255"/></div>
+        <div class="rgb-channel"><label style="color:#4dff90">G <span id="vG">255</span></label><input type="range" id="slG" min="0" max="255" value="255"/></div>
+        <div class="rgb-channel"><label style="color:#5c9eff">B <span id="vB">255</span></label><input type="range" id="slB" min="0" max="255" value="255"/></div>
+      </div>
+    </div>
+    <div class="panel-section" style="min-width:280px;flex:1.4 1 280px">
+      <div class="panel-section-title">Array Statistics</div>
+      <div class="stats-grid" id="stats-grid"></div>
+    </div>
+    <div class="panel-section" style="min-width:260px;flex:1.4 1 260px">
+      <div class="panel-section-title">Power Budget</div>
+      <div id="psu-section"></div>
+    </div>
+  </div>
+</div>
+<script>
+let cfg={ftf:280,spacing:10,ledSize:5,stripWidth:10,stripDir:'h',padding:10,centerModeX:'on',centerModeY:'on',maCh:20,volt:5,bright:100,r:255,g:255,b:255};
+let viewMode='all',colorMode='live',leds=[],svgScale=1,svgCx=0,svgCy=0,svgIR=0;
+function inHex(x,y,ir){const t=1e-6;return Math.abs(y)<=ir+t&&Math.abs(Math.sqrt(3)*x+y)<=2*ir+t&&Math.abs(Math.sqrt(3)*x-y)<=2*ir+t;}
+function hexVertices(cx,cy,ir){const R=ir/Math.cos(Math.PI/6);return Array.from({length:6},(_,i)=>{const a=Math.PI/180*(60*i);return[cx+R*Math.cos(a),cy+R*Math.sin(a)];});}
+function hexPathStr(cx,cy,ir){return hexVertices(cx,cy,ir).map(([x,y],i)=>`${i?'L':'M'}${x.toFixed(2)},${y.toFixed(2)}`).join('')+'Z';}
+function buildLeds(){const ir=cfg.ftf/2-cfg.padding,R=ir/Math.cos(Math.PI/6),sp=cfg.spacing,sw=cfg.stripWidth,span=Math.ceil(R/sp)+1,offsetX=cfg.centerModeX==='split'?sp/2:0,offsetY=cfg.centerModeY==='split'?sp/2:0,hsp=sp/2,hsw=sw/2,pts=[];for(let row=-span;row<=span;row++){for(let col=-span;col<=span;col++){const x=col*sp+offsetX,y=row*sp+offsetY,dx=cfg.stripDir==='h'?hsp:hsw,dy=cfg.stripDir==='h'?hsw:hsp;if(inHex(x-dx,y-dy,ir)&&inHex(x+dx,y-dy,ir)&&inHex(x-dx,y+dy,ir)&&inHex(x+dx,y+dy,ir))pts.push({x,y,row,col});}}return pts;}
+function calcPower(){const n=leds.length,bright=cfg.bright/100,rF=cfg.r/255,gF=cfg.g/255,bF=cfg.b/255,maPerLed=(rF+gF+bF)*cfg.maCh*bright,totalMa=n*maPerLed,totalW=totalMa*cfg.volt/1000,psuW=totalW*1.25,rows=new Set(leds.map(l=>l.row)).size,cols=new Set(leds.map(l=>l.col)).size;return{n,maPerLed,totalMa,totalW,psuW,rows,cols,bright,rF,gF,bF};}
+function psuSize(w){const t=[5,10,15,20,30,40,50,60,75,100,120,150,200,240,300,350,400,500,600,750,1000];return t.find(x=>x>=w*1.25)||Math.ceil(w*1.25/50)*50;}
+function stat(label,value,sub,cls){return`<div class="stat-card ${cls}"><div class="stat-label">${label}</div><div class="stat-value ${cls.includes('big')?'big':''} ${cls.includes('warn')?'red':''} ${cls.includes('good')?'green':''}">${value}</div>${sub?`<div class="stat-sub">${sub}</div>`:''}</div>`;}
+function updateStats(){const p=calcPower(),warn=p.totalW>100,rows=p.rows,cols=p.cols,maxBright3A=Math.min(100,(3000/(p.n*cfg.maCh*3))*100);document.getElementById('stats-grid').innerHTML=`${stat('LED COUNT',p.n.toLocaleString(),'','highlight big')}${stat('ROWS × COLS',`${rows}×${cols}`,'','')}${stat('mA / LED',p.maPerLed.toFixed(1),'mA eff.','')}${stat('TOTAL CURRENT',(p.totalMa/1000).toFixed(2),'A',warn?'warn':'good')}${stat('TOTAL POWER',p.totalW.toFixed(1),'W',warn?'warn':'good')}${stat('SUPPLY',`${cfg.volt}V`,'','')}${stat('3A THROTTLE',maxBright3A>=100?'100% ✓':`${maxBright3A.toFixed(1)}%`,'max @ 3A full white',maxBright3A>=100?'good':maxBright3A<30?'warn':'')}`;const psu=psuSize(p.totalW),fillPct=Math.min(100,p.totalW/psu*100).toFixed(0),col=fillPct>80?'var(--red)':fillPct>60?'var(--amber)':'var(--teal)';document.getElementById('psu-section').innerHTML=`<div class="psu-bar" style="border:none;padding:0"><div class="psu-bar-label">PSU LOAD at current settings</div><div class="psu-meter-track"><div class="psu-meter-fill" style="width:${fillPct}%;background:${col}"></div></div><div class="psu-ticks"><span>0W</span><span>${(psu/4).toFixed(0)}W</span><span>${(psu/2).toFixed(0)}W</span><span>${(3*psu/4).toFixed(0)}W</span><span>${psu}W</span></div><div class="psu-rec" style="margin-top:10px"><span style="color:var(--text2)">DRAW  </span>${p.totalW.toFixed(1)} W &nbsp;&nbsp; <span style="color:var(--text2)">AT ${cfg.volt}V  </span>${(p.totalMa/1000).toFixed(2)} A</div><div class="psu-rec"><span style="color:var(--text2)">REC. PSU  </span><span style="color:${col}">≥ ${psu}W @ ${cfg.volt}V</span> &nbsp;&nbsp; <span style="color:var(--text2)">(${(psu/cfg.volt).toFixed(0)} A)</span></div><div style="margin-top:6px;font-family:var(--mono);font-size:8px;color:var(--text2)">${cfg.maCh}mA/ch max · 3ch · ${cfg.volt}V · 1.25× safety factor</div></div>`;}
+function ledColor(){if(colorMode==='mono')return{fill:'#40ffb4',opacity:0.82};const r=Math.round(cfg.r*cfg.bright/100),g=Math.round(cfg.g*cfg.bright/100),b=Math.round(cfg.b*cfg.bright/100),hex='#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join(''),brightness=(r*0.299+g*0.587+b*0.114)/255;return{fill:hex||'#111',opacity:Math.max(0.3,0.4+brightness*0.6)};}
+function renderSVG(){const svg=document.getElementById('main-svg'),container=document.getElementById('svgContainer'),w=container.clientWidth||600,h=container.clientHeight||600,ir_mm=cfg.ftf/2,R_mm=ir_mm/Math.cos(Math.PI/6),pad=48,scale=Math.min((w-pad*2)/(R_mm*2),(h-pad*2)/(ir_mm*2)),cx=w/2,cy=h/2,R_svg=R_mm*scale,IR=ir_mm*scale,sp=cfg.spacing*scale,ledR=Math.min((cfg.ledSize/2)*scale,sp/2-0.5);svgScale=scale;svgCx=cx;svgCy=cy;svgIR=IR;svg.setAttribute('width',w);svg.setAttribute('height',h);svg.setAttribute('viewBox',`0 0 ${w} ${h}`);const{fill,opacity}=ledColor(),stripSW=cfg.stripWidth*scale,stripSegments=(()=>{if(cfg.stripDir==='h'){const byRow={};leds.forEach(l=>{(byRow[l.row]=byRow[l.row]||[]).push(l);});return Object.values(byRow).map(row=>{row.sort((a,b)=>a.x-b.x);const runs=[];let run=[row[0]];for(let i=1;i<row.length;i++){if(row[i].x-row[i-1].x>cfg.spacing*1.01){runs.push(run);run=[];}run.push(row[i]);}runs.push(run);return runs.map(r=>{const minX=r[0].x,maxX=r[r.length-1].x,y=r[0].y,sx=cx+(minX-cfg.spacing/2)*scale,sw_=(maxX-minX+cfg.spacing)*scale,sy=cy-y*scale-stripSW/2;return`<rect x="${sx.toFixed(1)}" y="${sy.toFixed(1)}" width="${sw_.toFixed(1)}" height="${stripSW.toFixed(1)}" rx="2" fill="#0d2218" stroke="#1a4030" stroke-width="0.6" opacity="0.85"/>`;}).join('');}).join('');}else{const byCol={};leds.forEach(l=>{(byCol[l.col]=byCol[l.col]||[]).push(l);});return Object.values(byCol).map(col=>{col.sort((a,b)=>a.y-b.y);const runs=[];let run=[col[0]];for(let i=1;i<col.length;i++){if(col[i].y-col[i-1].y>cfg.spacing*1.01){runs.push(run);run=[];}run.push(col[i]);}runs.push(run);return runs.map(r=>{const minY=r[0].y,maxY=r[r.length-1].y,x=r[0].x,sx=cx+x*scale-stripSW/2,sy_top=cy-(maxY+cfg.spacing/2)*scale,sh=(maxY-minY+cfg.spacing)*scale;return`<rect x="${sx.toFixed(1)}" y="${sy_top.toFixed(1)}" width="${stripSW.toFixed(1)}" height="${sh.toFixed(1)}" rx="2" fill="#0d2218" stroke="#1a4030" stroke-width="0.6" opacity="0.85"/>`;}).join('');}).join('');}})(),gridLines=[],span=Math.ceil(R_mm/cfg.spacing)+2;if(viewMode!=='hex'){for(let i=-span;i<=span;i++){const v=i*sp;gridLines.push(`<line x1="${(cx+v).toFixed(1)}" y1="0" x2="${(cx+v).toFixed(1)}" y2="${h}" stroke="#1e3030" stroke-width="0.4" clip-path="url(#hc)"/>`);gridLines.push(`<line x1="0" y1="${(cy+v).toFixed(1)}" x2="${w}" y2="${(cy+v).toFixed(1)}" stroke="#1e3030" stroke-width="0.4" clip-path="url(#hc)"/>`);}};const ledDots=viewMode!=='grid'?leds.map(({x,y,row,col})=>`<rect x="${(cx+x*scale-ledR).toFixed(2)}" y="${(cy-y*scale-ledR).toFixed(2)}" width="${(ledR*2).toFixed(2)}" height="${(ledR*2).toFixed(2)}" rx="${(ledR*0.3).toFixed(2)}" fill="${fill}" opacity="${opacity}" class="led" data-x="${x}" data-y="${y}" data-row="${row}" data-col="${col}"/>`).join(''):'',dimY=cy+IR+26,dimX=cx+R_svg+26;svg.innerHTML=`<defs><filter id="glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="1.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><clipPath id="hc"><path d="${hexPathStr(cx,cy,IR)}"/></clipPath></defs><path d="${hexPathStr(cx,cy,IR)}" fill="#060d0a"/>${viewMode!=='grid'?stripSegments:''}${gridLines.join('')}<g filter="url(#glow)">${ledDots}</g><path d="${hexPathStr(cx,cy,IR)}" fill="none" stroke="#f4a832" stroke-width="7" opacity="0.06"/><path d="${hexPathStr(cx,cy,IR)}" fill="none" stroke="#f4a832" stroke-width="1.2" opacity="0.55"/>${cfg.padding>0?`<path d="${hexPathStr(cx,cy,IR-cfg.padding*scale)}" fill="none" stroke="#2dd4a8" stroke-width="0.8" opacity="0.4" stroke-dasharray="4,3"/><text x="${cx}" y="${(cy-(IR-cfg.padding*scale)-5).toFixed(1)}" text-anchor="middle" fill="#2dd4a8" font-family="'Share Tech Mono',monospace" font-size="9" opacity="0.45" letter-spacing="0.1em">${cfg.padding}mm INSET</text>`:''}<line x1="${(cx-12)}" y1="${cy}" x2="${(cx+12)}" y2="${cy}" stroke="#f4a832" stroke-width="0.8" opacity="0.4"/><line x1="${cx}" y1="${(cy-12)}" x2="${cx}" y2="${(cy+12)}" stroke="#f4a832" stroke-width="0.8" opacity="0.4"/><line x1="${(cx-R_svg).toFixed(1)}" y1="${dimY.toFixed(1)}" x2="${(cx+R_svg).toFixed(1)}" y2="${dimY.toFixed(1)}" stroke="#f4a832" stroke-width="0.8" opacity="0.4"/><line x1="${(cx-R_svg).toFixed(1)}" y1="${(dimY-5).toFixed(1)}" x2="${(cx-R_svg).toFixed(1)}" y2="${(dimY+5).toFixed(1)}" stroke="#f4a832" stroke-width="0.8" opacity="0.4"/><line x1="${(cx+R_svg).toFixed(1)}" y1="${(dimY-5).toFixed(1)}" x2="${(cx+R_svg).toFixed(1)}" y2="${(dimY+5).toFixed(1)}" stroke="#f4a832" stroke-width="0.8" opacity="0.4"/><text x="${cx}" y="${(dimY+13).toFixed(1)}" text-anchor="middle" fill="#f4a832" font-family="'Share Tech Mono',monospace" font-size="10" opacity="0.55" letter-spacing="0.12em">${(R_mm*2).toFixed(1)} mm POINT–POINT</text><line x1="${dimX.toFixed(1)}" y1="${(cy-IR).toFixed(1)}" x2="${dimX.toFixed(1)}" y2="${(cy+IR).toFixed(1)}" stroke="#2dd4a8" stroke-width="0.8" opacity="0.3"/><line x1="${(dimX-5).toFixed(1)}" y1="${(cy-IR).toFixed(1)}" x2="${(dimX+5).toFixed(1)}" y2="${(cy-IR).toFixed(1)}" stroke="#2dd4a8" stroke-width="0.8" opacity="0.3"/><line x1="${(dimX-5).toFixed(1)}" y1="${(cy+IR).toFixed(1)}" x2="${(dimX+5).toFixed(1)}" y2="${(cy+IR).toFixed(1)}" stroke="#2dd4a8" stroke-width="0.8" opacity="0.3"/><text x="${(dimX+14).toFixed(1)}" y="${(cy+3).toFixed(1)}" text-anchor="middle" fill="#2dd4a8" font-family="'Share Tech Mono',monospace" font-size="9" opacity="0.35" letter-spacing="0.08em" transform="rotate(90,${(dimX+14).toFixed(1)},${cy.toFixed(1)})">${cfg.ftf} mm FLAT–FLAT</text>`;svg.querySelectorAll('.led').forEach(el=>{el.addEventListener('mouseenter',onLedHover);el.addEventListener('mouseleave',onLedLeave);});}
+function onLedHover(e){const el=e.target,x=parseFloat(el.dataset.x),y=parseFloat(el.dataset.y),row=el.dataset.row,col=el.dataset.col,rect=document.getElementById('svgContainer').getBoundingClientRect(),tip=document.getElementById('tooltip');tip.innerHTML=`X: ${x} mm<br>Y: ${y} mm<br>ROW ${row} · COL ${col}`;tip.style.display='block';const tx=e.clientX-rect.left+12,ty=e.clientY-rect.top-20;tip.style.left=Math.min(tx,rect.width-160)+'px';tip.style.top=Math.max(0,ty)+'px';const ledR=Math.min((cfg.ledSize/2)*svgScale,(cfg.spacing*svgScale)/2-0.5),hoverR=ledR*1.6;el.setAttribute('x',(svgCx+x*svgScale-hoverR).toFixed(2));el.setAttribute('y',(svgCy-y*svgScale-hoverR).toFixed(2));el.setAttribute('width',(hoverR*2).toFixed(2));el.setAttribute('height',(hoverR*2).toFixed(2));el.setAttribute('fill','#ffffff');el.setAttribute('opacity','1');document.getElementById('coordDisplay').textContent=`X: ${x} mm   Y: ${y} mm`;}
+function onLedLeave(e){document.getElementById('tooltip').style.display='none';const el=e.target,ledR=Math.min((cfg.ledSize/2)*svgScale,(cfg.spacing*svgScale)/2-0.5),{fill,opacity}=ledColor(),x=parseFloat(el.dataset.x),y=parseFloat(el.dataset.y);el.setAttribute('x',(svgCx+x*svgScale-ledR).toFixed(2));el.setAttribute('y',(svgCy-y*svgScale-ledR).toFixed(2));el.setAttribute('width',(ledR*2).toFixed(2));el.setAttribute('height',(ledR*2).toFixed(2));el.setAttribute('fill',fill);el.setAttribute('opacity',opacity);document.getElementById('coordDisplay').textContent='X: — mm   Y: — mm';}
+function fullUpdate(){leds=buildLeds();updateStats();renderSVG();}
+function setView(m){viewMode=m;['All','Grid','Hex'].forEach(v=>{document.getElementById('btn'+v).classList.toggle('active',m===v.toLowerCase());});renderSVG();}
+function setColor(m){colorMode=m;document.getElementById('btnColor').classList.toggle('active',m==='live');document.getElementById('btnMono').classList.toggle('active',m==='mono');renderSVG();}
+function setCenterMode(axis,m){if(axis==='x'){cfg.centerModeX=m;document.getElementById('btnCenterXOn').classList.toggle('active',m==='on');document.getElementById('btnCenterXSplit').classList.toggle('active',m==='split');}else{cfg.centerModeY=m;document.getElementById('btnCenterYOn').classList.toggle('active',m==='on');document.getElementById('btnCenterYSplit').classList.toggle('active',m==='split');}fullUpdate();}
+function setStripDir(d){cfg.stripDir=d;document.getElementById('btnStripH').classList.toggle('active',d==='h');document.getElementById('btnStripV').classList.toggle('active',d==='v');fullUpdate();}
+const LED_TYPES={ws2812b_5050:{maCh:20,ledSize:5.0,volt:5},ws2812b_2020:{maCh:5,ledSize:2.0,volt:5},ws2812b_3535:{maCh:12,ledSize:3.5,volt:5},sk6812_5050:{maCh:20,ledSize:5.0,volt:5},sk6812_mini:{maCh:12,ledSize:3.5,volt:5},sk6812_2020:{maCh:5,ledSize:2.0,volt:5},sk6805_ec15:{maCh:1.5,ledSize:1.5,volt:5},sk6805_ec10:{maCh:1.0,ledSize:1.0,volt:5},apa102_5050:{maCh:20,ledSize:5.0,volt:5},sk9822_5050:{maCh:20,ledSize:5.0,volt:5},ws2815_5050:{maCh:20,ledSize:5.0,volt:12},ws2813_5050:{maCh:20,ledSize:5.0,volt:5}};
+document.getElementById('selLedType').addEventListener('change',function(){const p=LED_TYPES[this.value];if(!p)return;cfg.maCh=p.maCh;cfg.ledSize=p.ledSize;cfg.volt=p.volt;document.getElementById('slMA').value=p.maCh;document.getElementById('vMA').textContent=p.maCh;document.getElementById('inLedSize').value=p.ledSize;document.getElementById('inVolt').value=p.volt;fullUpdate();});
+function markCustom(){document.getElementById('selLedType').value='custom';}
+document.getElementById('inFTF').addEventListener('change',function(){cfg.ftf=parseFloat(this.value)||280;fullUpdate();});
+document.getElementById('inSpacing').addEventListener('change',function(){cfg.spacing=parseFloat(this.value)||10;fullUpdate();});
+document.getElementById('inStripWidth').addEventListener('change',function(){cfg.stripWidth=parseFloat(this.value)||10;fullUpdate();});
+document.getElementById('inLedSize').addEventListener('change',function(){cfg.ledSize=parseFloat(this.value)||5;markCustom();fullUpdate();});
+document.getElementById('inPadding').addEventListener('change',function(){cfg.padding=parseFloat(this.value)||0;fullUpdate();});
+document.getElementById('inVolt').addEventListener('change',function(){cfg.volt=parseFloat(this.value)||5;markCustom();fullUpdate();});
+document.getElementById('slMA').addEventListener('input',function(){cfg.maCh=parseFloat(this.value);document.getElementById('vMA').textContent=this.value;markCustom();fullUpdate();});
+document.getElementById('slBright').addEventListener('input',function(){cfg.bright=parseFloat(this.value);document.getElementById('vBright').textContent=this.value+'%';fullUpdate();});
+document.getElementById('slR').addEventListener('input',function(){cfg.r=parseFloat(this.value);document.getElementById('vR').textContent=this.value;fullUpdate();});
+document.getElementById('slG').addEventListener('input',function(){cfg.g=parseFloat(this.value);document.getElementById('vG').textContent=this.value;fullUpdate();});
+document.getElementById('slB').addEventListener('input',function(){cfg.b=parseFloat(this.value);document.getElementById('vB').textContent=this.value;fullUpdate();});
+let resizeTimer;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(renderSVG,80);});
+fullUpdate();
+</script>
+</body>
+</html>
