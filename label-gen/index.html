@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Label Generator — Wave Field Tools</title>
+<link rel="stylesheet" href="../wf.css"/>
+<style>
+  body { height:100vh; display:flex; flex-direction:column; overflow:hidden; }
+  .main-grid { display:flex; flex-direction:row; flex:1; min-height:0; }
+
+  /* ── Preview side ── */
+  .preview-panel {
+    flex:1 1 0; min-width:0; display:flex; flex-direction:column;
+    overflow-y:auto; background:var(--bg-primary);
+  }
+  .preview-panel > * { flex-shrink:0; }
+  .preview-toolbar {
+    border-bottom:1px solid var(--border); padding:10px 18px;
+    display:flex; align-items:center; gap:10px; background:var(--bg-secondary); flex-wrap:wrap;
+  }
+  .toolbar-label {
+    font-size:10px; font-weight:600; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--text-muted);
+  }
+  .toolbar-sep { width:1px; height:18px; background:var(--border); margin:0 4px; }
+  .size-readout { margin-left:auto; font-family:var(--mono); font-size:11px; color:var(--text-muted); }
+
+  .stage {
+    flex:1; display:flex; align-items:center; justify-content:center;
+    padding:48px 28px; min-height:340px;
+    background-image:
+      linear-gradient(45deg, #141418 25%, transparent 25%),
+      linear-gradient(-45deg, #141418 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #141418 75%),
+      linear-gradient(-45deg, transparent 75%, #141418 75%);
+    background-size: 18px 18px;
+    background-position: 0 0, 0 9px, 9px -9px, -9px 0;
+  }
+  #labelCanvas {
+    display:block; max-width:100%; height:auto;
+    box-shadow:0 10px 32px rgba(0,0,0,.6), 0 0 0 1px var(--border);
+    border-radius:3px;
+  }
+
+  .actions { padding:18px; display:flex; gap:9px; flex-wrap:wrap; border-top:1px solid var(--border); }
+
+  /* ── Control pane ── */
+  .controls {
+    background:var(--bg-secondary); border-left:1px solid var(--border);
+    overflow-y:auto; flex:0 0 330px; width:330px; display:flex; flex-direction:column;
+  }
+  .controls > * { flex-shrink:0; }
+  .panel-section { border-bottom:1px solid var(--border); padding:18px; }
+  .row2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .row3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:9px; }
+  .hint { font-size:11px; color:var(--text-muted); margin-top:5px; line-height:1.5; }
+  input[type=color] {
+    width:100%; height:36px; padding:3px; background:var(--bg-card);
+    border:1px solid var(--border); border-radius:7px; cursor:pointer;
+  }
+  .swatch-label { font-size:11px; font-weight:500; color:var(--text-primary); margin-bottom:6px; display:block; }
+  .info {
+    background:rgba(124,58,237,.08); border:1px solid rgba(124,58,237,.28);
+    border-radius:9px; padding:12px 13px; font-size:12px; line-height:1.75; color:var(--text-muted);
+  }
+  .info b { color:var(--text-primary); font-family:var(--mono); font-weight:500; }
+  .preset-row { display:flex; gap:6px; margin-top:8px; }
+  .preset-row .wf-btn { flex:1; padding:6px 4px; font-size:11px; }
+
+  @media (max-width:900px) {
+    body { height:auto; overflow:auto; }
+    .main-grid { flex-direction:column; }
+    .controls { flex:0 0 auto; width:100%; border-left:none; border-top:1px solid var(--border); }
+  }
+</style>
+</head>
+<body>
+
+<nav class="wf-nav">
+  <a class="wf-logo" href="https://www.wavefieldproject.com/">wavefield</a>
+  <div class="wf-nav-links"><a class="nav-link" href="../">Tools</a></div>
+  <div class="spacer"></div>
+  <span class="wf-tool-name">Label Generator</span>
+</nav>
+
+<div class="main-grid">
+
+  <div class="preview-panel">
+    <div class="preview-toolbar">
+      <span class="toolbar-label">DPI</span>
+      <button class="wf-btn" id="dpi150" onclick="setDPI(150)">Screen 150</button>
+      <button class="wf-btn active" id="dpi300" onclick="setDPI(300)">Print 300</button>
+      <button class="wf-btn" id="dpi600" onclick="setDPI(600)">High 600</button>
+      <div class="toolbar-sep"></div>
+      <span class="toolbar-label">Preset</span>
+      <button class="wf-btn" onclick="setSize(58,18)">58×18</button>
+      <button class="wf-btn" onclick="setSize(50,25)">50×25</button>
+      <span class="size-readout" id="sizeReadout">— px</span>
+    </div>
+
+    <div class="stage"><canvas id="labelCanvas"></canvas></div>
+
+    <div class="actions">
+      <button class="wf-btn primary" onclick="downloadPNG()">Download PNG</button>
+      <button class="wf-btn" onclick="copyToClipboard()">Copy to Clipboard</button>
+      <button class="wf-btn" onclick="generateBatch()">Batch Generate…</button>
+      <span id="status" style="align-self:center;font-size:12px;color:var(--text-muted)"></span>
+    </div>
+  </div>
+
+  <div class="controls">
+
+    <div class="panel-section">
+      <div class="wf-section-label">Identity</div>
+      <div class="wf-field">
+        <label>Hex ID</label>
+        <input type="text" id="hexId" value="001" placeholder="001"/>
+        <div class="hint">SSID becomes <b style="font-family:var(--mono)">HEX001</b></div>
+      </div>
+      <div class="wf-field">
+        <label>WiFi Password</label>
+        <input type="text" id="password" value="wobbling"/>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="wf-section-label">Custom Text</div>
+      <div class="wf-field">
+        <label>Line 1 <span class="unit">above ID</span></label>
+        <input type="text" id="customLine1" value="" placeholder="Scan to control"/>
+      </div>
+      <div class="wf-field">
+        <label>Line 2 <span class="unit">below ID</span></label>
+        <input type="text" id="customLine2" value="" placeholder="Battery: 2x18650"/>
+      </div>
+      <div class="row2">
+        <div class="wf-field">
+          <label>ID Size <span class="unit">mm</span></label>
+          <input type="number" id="fontSizeMM" value="7" step="0.5" min="2" max="20"/>
+        </div>
+        <div class="wf-field">
+          <label>Custom <span class="unit">mm</span></label>
+          <input type="number" id="customTextSizeMM" value="3" step="0.5" min="1" max="10"/>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="wf-section-label">Dimensions</div>
+      <div class="row2">
+        <div class="wf-field">
+          <label>Width <span class="unit">mm</span></label>
+          <input type="number" id="widthMM" value="58" step="1"/>
+        </div>
+        <div class="wf-field">
+          <label>Height <span class="unit">mm</span></label>
+          <input type="number" id="heightMM" value="18" step="1"/>
+        </div>
+      </div>
+      <div class="wf-field">
+        <label>DPI <span class="wf-val" id="vDpi">300</span></label>
+        <input type="number" id="dpi" value="300" step="50"/>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="wf-section-label">Border &amp; Spacing</div>
+      <div class="row2">
+        <div class="wf-field">
+          <label>Border W <span class="unit">mm</span></label>
+          <input type="number" id="borderWidthMM" value="0.25" step="0.05" min="0" max="2"/>
+        </div>
+        <div class="wf-field">
+          <label>Radius <span class="unit">mm</span></label>
+          <input type="number" id="borderRadiusMM" value="2" step="0.1" min="0" max="10"/>
+        </div>
+        <div class="wf-field">
+          <label>Outer R <span class="unit">mm</span></label>
+          <input type="number" id="outerRadiusMM" value="2.5" step="0.1" min="0" max="10"/>
+        </div>
+        <div class="wf-field">
+          <label>Inner Pad <span class="unit">mm</span></label>
+          <input type="number" id="innerPaddingMM" value="1.5" step="0.1" min="0" max="5"/>
+        </div>
+      </div>
+      <div class="wf-field">
+        <label>Outer Padding <span class="unit">mm</span></label>
+        <input type="number" id="outerPaddingMM" value="0.5" step="0.1" min="0" max="5"/>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="wf-section-label">Label Colours</div>
+      <div class="row3">
+        <div>
+          <span class="swatch-label">Border</span>
+          <input type="color" id="borderColor" value="#000000"/>
+        </div>
+        <div>
+          <span class="swatch-label">Text</span>
+          <input type="color" id="textColor" value="#000000"/>
+        </div>
+        <div>
+          <span class="swatch-label">Background</span>
+          <input type="color" id="bgColor" value="#FFFFFF"/>
+        </div>
+      </div>
+      <div class="hint">Defaults are print-optimised. Black on white gives the most reliable QR scan contrast.</div>
+    </div>
+
+    <div class="panel-section" style="border-bottom:none">
+      <div class="info">
+        Output <b id="actualSize">0×0</b> px<br/>
+        Approx <b id="fileSize">0</b> KB uncompressed<br/>
+        All spacing in mm, converted at the selected DPI.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+const canvas = document.getElementById('labelCanvas');
+const ctx = canvas.getContext('2d');
+const mmToPixels = (mm, dpi) => Math.round((mm / 25.4) * dpi);
+const val = (id, dflt) => { const v = parseFloat(document.getElementById(id).value); return isNaN(v) ? dflt : v; };
+
+function roundRect(ctx,x,y,w,h,r){
+  r = Math.max(0, Math.min(r, w/2, h/2));
+  ctx.moveTo(x+r,y);
+  ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);   ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);     ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+}
+
+function updateLabel(){
+  const hexId = document.getElementById('hexId').value || '001';
+  const password = document.getElementById('password').value || 'wobbling';
+  const customLine1 = document.getElementById('customLine1').value || '';
+  const customLine2 = document.getElementById('customLine2').value || '';
+  const dpi = Math.max(50, val('dpi',300));
+
+  const width         = mmToPixels(val('widthMM',58), dpi);
+  const height        = mmToPixels(val('heightMM',18), dpi);
+  const borderWidth   = mmToPixels(val('borderWidthMM',0.25), dpi);
+  const borderRadius  = mmToPixels(val('borderRadiusMM',2), dpi);
+  const outerRadius   = mmToPixels(val('outerRadiusMM',2.5), dpi);
+  const innerPadding  = mmToPixels(val('innerPaddingMM',1.5), dpi);
+  const outerPadding  = mmToPixels(val('outerPaddingMM',0.5), dpi);
+  const fontSize      = mmToPixels(val('fontSizeMM',7), dpi);
+  const customTextSize= mmToPixels(val('customTextSizeMM',3), dpi);
+
+  const borderColor = document.getElementById('borderColor').value;
+  const textColor   = document.getElementById('textColor').value;
+  const bgColor     = document.getElementById('bgColor').value;
+
+  canvas.width  = width  + outerPadding*2;
+  canvas.height = height + outerPadding*2;
+
+  // keep on-screen preview a sane size regardless of DPI
+  const cssW = Math.min(620, canvas.width);
+  canvas.style.width = cssW + 'px';
+  canvas.style.height = (canvas.height * cssW / canvas.width) + 'px';
+
+  document.getElementById('actualSize').textContent = canvas.width + '×' + canvas.height;
+  document.getElementById('fileSize').textContent = Math.round(canvas.width*canvas.height*4/1024);
+  document.getElementById('sizeReadout').textContent = canvas.width + '×' + canvas.height + ' px';
+  document.getElementById('vDpi').textContent = dpi;
+
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  ctx.fillStyle = bgColor;
+  ctx.beginPath(); roundRect(ctx,0,0,canvas.width,canvas.height,outerRadius); ctx.fill();
+
+  if (borderWidth > 0) {
+    ctx.strokeStyle = borderColor; ctx.lineWidth = borderWidth;
+    ctx.beginPath();
+    roundRect(ctx, outerPadding+borderWidth/2, outerPadding+borderWidth/2,
+              width-borderWidth, height-borderWidth, borderRadius);
+    ctx.stroke();
+  }
+
+  const contentX = outerPadding + borderWidth + innerPadding;
+  const contentY = outerPadding + borderWidth + innerPadding;
+  const contentWidth  = width  - borderWidth*2 - innerPadding*2;
+  const contentHeight = height - borderWidth*2 - innerPadding*2;
+
+  const ssid = 'HEX' + hexId;
+  const qr = qrcode(0,'M');
+  qr.addData('WIFI:T:WPA;S:' + ssid + ';P:' + password + ';;');
+  qr.make();
+
+  const qrSize = Math.min(contentHeight, contentWidth*0.3);
+  const qrX = contentX, qrY = contentY + (contentHeight-qrSize)/2;
+  const moduleCount = qr.getModuleCount();
+  const moduleSize = qrSize/moduleCount;
+
+  ctx.fillStyle = '#000000';
+  for (let row=0; row<moduleCount; row++)
+    for (let col=0; col<moduleCount; col++)
+      if (qr.isDark(row,col))
+        ctx.fillRect(Math.floor(qrX+col*moduleSize), Math.floor(qrY+row*moduleSize),
+                     Math.ceil(moduleSize), Math.ceil(moduleSize));
+
+  const textX = qrX + qrSize + contentWidth*0.05;
+  const idY = canvas.height/2 + mmToPixels(0.6, dpi);
+  const topGap = fontSize*0.7, bottomGap = fontSize*0.5;
+
+  ctx.fillStyle = textColor; ctx.textAlign = 'left';
+
+  if (customLine1){
+    ctx.font = customTextSize + 'px Arial, sans-serif';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(customLine1, textX, idY - topGap);
+  }
+
+  ctx.textBaseline = 'middle';
+  ctx.font = fontSize + 'px Arial, sans-serif';
+  const idLabelWidth = ctx.measureText('ID: ').width;
+  ctx.fillText('ID: ', textX, idY);
+  ctx.font = 'bold ' + fontSize + 'px Arial, sans-serif';
+  ctx.fillText(ssid, textX + idLabelWidth, idY);
+
+  if (customLine2){
+    ctx.font = customTextSize + 'px Arial, sans-serif';
+    ctx.textBaseline = 'top';
+    ctx.fillText(customLine2, textX, idY + bottomGap);
+  }
+}
+
+function flash(msg, bad){
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.style.color = bad ? 'var(--bad)' : 'var(--good)';
+  setTimeout(()=>{ el.textContent=''; }, 2600);
+}
+
+function downloadPNG(){
+  const hexId = document.getElementById('hexId').value || '001';
+  canvas.toBlob(blob => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'wavefield_HEX' + hexId + '.png'; a.click();
+    URL.revokeObjectURL(url);
+  });
+}
+
+function copyToClipboard(){
+  canvas.toBlob(async blob => {
+    try {
+      await navigator.clipboard.write([ new ClipboardItem({ 'image/png': blob }) ]);
+      flash('Copied to clipboard');
+    } catch(err){ flash('Clipboard blocked — use Download', true); }
+  });
+}
+
+function setDPI(d){
+  document.getElementById('dpi').value = d;
+  ['150','300','600'].forEach(x =>
+    document.getElementById('dpi'+x).classList.toggle('active', String(d)===x));
+  updateLabel();
+}
+function setSize(w,h){
+  document.getElementById('widthMM').value = w;
+  document.getElementById('heightMM').value = h;
+  updateLabel();
+}
+
+function generateBatch(){
+  const start = parseInt(prompt('Start HEX ID:', '1'));
+  const end   = parseInt(prompt('End HEX ID:', '20'));
+  if (!start || !end || start > end) { flash('Invalid range', true); return; }
+  const original = document.getElementById('hexId').value;
+  let id = start;
+  (function next(){
+    if (id > end){
+      document.getElementById('hexId').value = original;
+      updateLabel();
+      flash('Generated ' + (end-start+1) + ' labels');
+      return;
+    }
+    document.getElementById('hexId').value = String(id).padStart(3,'0');
+    updateLabel();
+    setTimeout(()=>{ downloadPNG(); id++; setTimeout(next, 450); }, 90);
+  })();
+}
+
+['hexId','password','customLine1','customLine2','customTextSizeMM','widthMM','heightMM','dpi',
+ 'borderWidthMM','borderRadiusMM','outerRadiusMM','innerPaddingMM','outerPaddingMM',
+ 'borderColor','textColor','bgColor','fontSizeMM'].forEach(id=>{
+  const el = document.getElementById(id);
+  el.addEventListener('input', updateLabel);
+  el.addEventListener('change', updateLabel);
+});
+
+updateLabel();
+</script>
+</body>
+</html>
